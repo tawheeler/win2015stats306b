@@ -68,22 +68,28 @@
 
 \section{Introduction}
 
-Fluorescent imaging allows for the real-time analysis of neuron behavior in anesthetized and awake behaving animals. 
-Existing methods monitor {\calcium} dynamics over a large region, but automated methods for isolating signals and associating them with particular neurons remains in active research.
+Fluorescent imaging allows for the analysis of signalling behavior on a per-neuron basis in anesthetized and awake behaving animals. 
+Existing methods monitor {\calcium} dynamics over a large region, but recently developed automated methods allow for isolating signals and associating them with particular neurons.
 One proposed method leverages spatio-temporal sparseness in elevated [\calcium] levels to identify neuronal spikes and associate them with particular regions in the source frames.
 The resulting work suffers from the presence of background structure such as blood vessels.
-This project aims to apply unsupervised learning methods to identify classes of identified objects from two-photon {\calcium} imaging in the cerebellar vermis of awake behaving mice to aid in the automatic classification of neurons from background structure.
+This project aims to apply unsupervised learning methods to identify classes of identified objects from one-photon {\calcium} imaging in the primary visual cortex (V1) of awake behaving mice to aid in the automatic unsupervised classification of neurons from background structures.
 
 \section{Dataset}
 
-This project will use an existing dataset obtained using two-photon {\calcium} imaging in the cerebellar vermis of awake behaving mice~\cite{Mukamel2009}.
-The locations of candidate locations and associated intracellular [\calcium] signals are given the form \todo{how is the data presented? Do we have the original raw images?}
-\todo{How much data? How many frames?}
+This project will use an existing dataset obtained using one-photon {\calcium} imaging in the primary visual cortex of awake behaving mice performing a \num{30}-minutes go/nogo task.
+Video recordings are available for three consecutive days of \num{30}-minute sessions each.
+Data are presented as frame images associated with each of the extracted independent components (ICs).
+Images are black and white frame averages that show the strength of each IC over the segmented field of view. 
+Each IC indicates the flourscent signal of one independent object which may be a neuron, part of a blood vessel, or background noise.
+
+The ICs are sampled at \num{6.7}\si{Hz}, totalling \num{1200} samples over each \num{30}-minute recording. 
+Each recording contains a few thousand extracted objects, the idendity and quantity of which will vary between recordings.
+The original raw videos are also available and could provide additional information.
 
 \section{Approach}
 
 Offline clustering methods will be used to identify relevant object classes from segmented image data and associated intracellular [\calcium] signals.
-The resulting classes may provide crucial insight in distinguishing between the neurons and background structure present in the extracted data.
+The resulting classes may provide crucial insight in distinguishing between neurons and background structure present in the extracted data.
 
 \begin{table}[h]
     \centering
@@ -92,12 +98,12 @@ The resulting classes may provide crucial insight in distinguishing between the 
         \toprule
         
         \begin{tabular}{l}
-            
             candidate clustering methods \\
             \midrule
             Kernel $k$-means \\
             tree-structured vector quantisation \\
             agglomerative hierarchical clustering \\
+            deep learning\\
             \\
         \end{tabular} & 
 
@@ -106,7 +112,8 @@ The resulting classes may provide crucial insight in distinguishing between the 
             \midrule
             principle components \\
             auto-encoded feature space \\
-            \todo{other ideas?} \\
+	    morphological features\\ 
+	    dependency to surronding objects\\
             \\
         \end{tabular} & 
 
@@ -116,7 +123,8 @@ The resulting classes may provide crucial insight in distinguishing between the 
             frequency content \\
             mean peak amplitude \\
             mean peak width \\
-            \todo{other ideas?} \\
+            signal-to-noise ratio \\
+            matched filtered data\\
         \end{tabular} \\
 
         \bottomrule
