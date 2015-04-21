@@ -1,0 +1,136 @@
+
+\documentclass[11pt]{article}
+
+\usepackage{pgfplots}
+\usepackage{tikz}
+\usepackage{amsmath}
+\usepackage{amssymb}     % for mathbb
+\usepackage{enumerate}
+\usepackage{xfrac}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{algorithmic}
+\usepackage{algorithm}
+\usepackage{booktabs}    % for beautiful tables
+\usepackage{siunitx}     % for si units
+\usepackage{color}
+\usepackage{titlesec}    % for header spacing
+
+\usepackage[backend=bibtex,style=ieee]{biblatex}
+
+% set margins
+\addtolength{\oddsidemargin}{-.875in}
+\addtolength{\evensidemargin}{-.875in}
+\addtolength{\textwidth}{1.75in}
+\addtolength{\topmargin}{-.875in}
+\addtolength{\textheight}{1.75in}
+
+\setlength{\parindent}{0cm}        % no paragraph indentations
+\setlength{\parskip}{0.5em}        % small paragraph spacing
+
+\titlespacing\section{0pt}{10pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+\titlespacing\subsection{0pt}{10pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+\titlespacing\subsubsection{0pt}{10pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+
+\DeclareMathOperator*{\argmax}{arg\,max}
+
+\newcommand{\calcium}[0]{Ca\textsuperscript{2+}}
+\newcommand{\todo}[1]{\textcolor{red}{#1}}
+\providecommand{\tw}[1]{{\tw[TIM: #1]}}
+
+\AtEveryBibitem{
+\ifentrytype{inproceedings}{
+    \clearlist{address}
+    \clearlist{publisher}
+    \clearname{editor}
+    \clearlist{organization}
+    \clearfield{url}  
+    \clearfield{doi}  
+    \clearfield{pages}  
+    \clearlist{location}
+ }{}
+ }
+
+\addbibresource{ref.bib}
+\renewcommand*{\bibfont}{\footnotesize}
+
+\begin{document}
+
+\begin{center}
+    {\LARGE Clustering of Neurons from Large-Scale Calcium Imaging Data}
+
+    Stats 306b Project Proposal
+
+    Mohammad Ebrahimi and Tim Wheeler
+
+    Spring 2015
+\end{center}
+
+\section{Introduction}
+
+Fluorescent imaging allows for the real-time analysis of neuron behavior in anesthetized and awake behaving animals. 
+Existing methods monitor {\calcium} dynamics over a large region, but automated methods for isolating signals and associating them with particular neurons remains in active research.
+One proposed method leverages spatio-temporal sparseness in elevated [\calcium] levels to identify neuronal spikes and associate them with particular regions in the source frames.
+The resulting work suffers from the presence of background structure such as blood vessels.
+This project aims to apply unsupervised learning methods to identify classes of identified objects from two-photon {\calcium} imaging in the cerebellar vermis of awake behaving mice to aid in the automatic classification of neurons from background structure.
+
+\section{Dataset}
+
+This project will use an existing dataset obtained using two-photon {\calcium} imaging in the cerebellar vermis of awake behaving mice~\cite{Mukamel2009}.
+The locations of candidate locations and associated intracellular [\calcium] signals are given the form \todo{how is the data presented? Do we have the original raw images?}
+\todo{How much data? How many frames?}
+
+\section{Approach}
+
+Offline clustering methods will be used to identify relevant object classes from segmented image data and associated intracellular [\calcium] signals.
+The resulting classes may provide crucial insight in distinguishing between the neurons and background structure present in the extracted data.
+
+\begin{table}[h]
+    \centering
+    \scriptsize
+    \begin{tabular}{ccc}
+        \toprule
+        
+        \begin{tabular}{l}
+            
+            candidate clustering methods \\
+            \midrule
+            Kernel $k$-means \\
+            tree-structured vector quantisation \\
+            agglomerative hierarchical clustering \\
+            \\
+        \end{tabular} & 
+
+        \begin{tabular}{l}
+            segmented image data over time \\
+            \midrule
+            principle components \\
+            auto-encoded feature space \\
+            \todo{other ideas?} \\
+            \\
+        \end{tabular} & 
+
+        \begin{tabular}{l}
+            \calcium time histories \\
+            \midrule
+            frequency content \\
+            mean peak amplitude \\
+            mean peak width \\
+            \todo{other ideas?} \\
+        \end{tabular} \\
+
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\section{Measurement of Success}
+
+Success of the project will be measured in the ability of a clustering method to correctly distinguish between neurons and background structure and identification of the key features used to make the distinction.
+A subset of the training data is labelled, and can thus be used to compute a validation score.
+Additional success metrics include the identification of subsets of neuron classes.
+
+% \newpage
+
+\printbibliography
+
+\end{document}
