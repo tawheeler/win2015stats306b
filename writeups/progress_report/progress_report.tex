@@ -1,0 +1,229 @@
+
+\documentclass[11pt]{article}
+
+\usepackage{pgfplots}
+\usepackage{tikz}
+\usepackage{amsmath}
+\usepackage{amssymb}     % for mathbb
+\usepackage{enumerate}
+\usepackage{xfrac}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{algorithmic}
+\usepackage{algorithm}
+\usepackage{booktabs}    % for beautiful tables
+\usepackage{siunitx}     % for si units
+\usepackage{color}
+\usepackage{titlesec}    % for header spacing
+
+\usepackage[backend=bibtex,style=ieee]{biblatex}
+
+% set margins
+\addtolength{\oddsidemargin}{-.875in}
+\addtolength{\evensidemargin}{-.875in}
+\addtolength{\textwidth}{1.75in}
+\addtolength{\topmargin}{-.875in}
+\addtolength{\textheight}{1.75in}
+
+\setlength{\parindent}{0cm}        % no paragraph indentations
+\setlength{\parskip}{0.5em}        % small paragraph spacing
+
+\titlespacing\section{0pt}{10pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+\titlespacing\subsection{0pt}{10pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+\titlespacing\subsubsection{0pt}{10pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
+
+\DeclareMathOperator*{\argmax}{arg\,max}
+
+\newcommand{\calcium}[0]{Ca\textsuperscript{2+}}
+\newcommand{\todo}[1]{\textcolor{red}{#1}}
+\providecommand{\tw}[1]{{\tw[TIM: #1]}}
+
+\AtEveryBibitem{
+\ifentrytype{inproceedings}{
+    \clearlist{address}
+    \clearlist{publisher}
+    \clearname{editor}
+    \clearlist{organization}
+    \clearfield{url}  
+    \clearfield{doi}  
+    \clearfield{pages}  
+    \clearlist{location}
+ }{}
+ }
+
+\addbibresource{ref.bib}
+\renewcommand*{\bibfont}{\footnotesize}
+
+\begin{document}
+
+\begin{center}
+    {\LARGE Clustering of Neurons from Large-Scale Calcium Imaging Data}
+
+    Stats 306b Project - Progress Report
+
+    Mohammad Ebrahimi and Tim Wheeler
+
+    Spring 2015
+\end{center}
+
+\section{Introduction}
+
+Fluorescent imaging allows for the analysis of signalling behavior on a per-neuron basis in anesthetized and awake behaving animals. 
+Existing methods monitor {\calcium} dynamics over a large region, but recently developed automated methods allow for isolating signals and associating them with particular neurons.
+One proposed method leverages spatio-temporal sparseness in elevated [\calcium] levels to identify neuronal spikes and associate them with particular regions in the source frames.
+The resulting work suffers from the presence of background structure such as blood vessels.
+This project aims to apply unsupervised learning methods to identify classes of identified objects from one-photon {\calcium} imaging in the primary visual cortex (V1) of awake behaving mice to aid in the automatic unsupervised classification of neurons from background structures.
+
+\section{Dataset}
+
+This project will use an existing dataset obtained using one-photon {\calcium} imaging in the primary visual cortex of awake behaving mice performing a \num{30}-minutes go/nogo task.
+Video recordings are available for three consecutive days of \num{30}-minute sessions each.
+Data are presented as frame images associated with each of the extracted independent components (ICs).
+Images are black and white frame averages that show the strength of each IC over the segmented field of view. 
+Each IC indicates the flourscent signal of one independent object which may be a neuron, part of a blood vessel, or background noise.
+
+The ICs are sampled at \num{6.7}\si{Hz}, totalling \num{1200} samples over each \num{30}-minute recording. 
+Each recording contains a few thousand extracted objects, the idendity and quantity of which will vary between recordings.
+The original raw videos are also available and could provide additional information.
+
+\section{Features}
+
+Offline clustering methods will be used to identify relevant object classes from segmented image data and associated intracellular [\calcium] signals.
+The unsupervised learning methods employed in this work require a set of features that capture the differences between neurons and background structure. 
+Features were extracted from both the black and white image frame averages and the independent component time series traces.
+
+\subsection{Image Features}
+
+\begin{figure}[h]
+    \centering
+    \begin{minipage}{.33\textwidth}
+      \centering
+      \includegraphics[width=.9\linewidth]{frame_2.png}
+      \caption{\footnotesize Clean neuron source frame.}
+      \label{fig:test1}
+    \end{minipage}%
+    \begin{minipage}{.33\textwidth}
+      \centering
+      \includegraphics[width=.9\linewidth]{frame_3.png}
+      \caption{\footnotesize Background structure. }
+      \label{fig:test2}
+    \end{minipage}
+    \begin{minipage}{.33\textwidth}
+      \centering
+      \includegraphics[width=.9\linewidth]{frame_4.png}
+      \caption{\footnotesize Large neuron. }
+      \label{fig:test2}
+    \end{minipage}
+    \caption{Examples of frame data. (1) contains a clean neuron source frame. (2) contains background structure in the form of blood vessels. The FWHM peak region is colored magenta. (3) contains an unknown structure which is likely a neuron. Here the peak region is much larger. }
+\end{figure}
+
+A set of features were extracted for each image frame.
+A frame is a \num{500} by \num{500} pixel monochromatic matrix containing the average IC over the segemented field of view. 
+Image frame values vary between background noise on the order of \num{+-3} but contain sharp peak values as high as \num{100}.
+A total of eleven scalar features and sixteen histogrammed directionality features were extracted from each image.
+
+Peak blobs are identified using the full-width half-maximum (FWHM). 
+All pixels above half the maximum value are considered.
+A simple flood-fill algoithm is used to find the largest connected blob, hereafter referred to as the peak region.
+
+Several features are derived directly from the peak region.
+The \emph{peak region size} is the number of pixels in the peak region, and corresponds roughly to the area of the peak region.
+The \emph{peak region perimeter} is the number of pixels on the exterior of the peak region, and corresponds roughly to the actual perimeter of the peak region. 
+An approximate measure of \emph{roundness} can be obtained by computing the ratio of the peak region size and perimeter:
+
+$$
+\text{roundness} = 4\pi \frac{\text{area}}{\text{perimeter}^2}
+$$
+
+\noindent
+where a roundness of one corresponds roughly to a perfect circle.
+The peak region \emph{skew} is obtained by computing the $xy$-correlation between the square subsection of the image of \num{21} pixel side length centered at the peak region center.
+
+The \emph{peak} value of the peak region was extracted, as well as the peak region \emph{mean} and \emph{standard deviation}.
+
+A subimage of \num{24} pixel side length was extracted about the peak region center.
+The \emph{entropy} was computed over the normalized pixel values.
+The mean and standard deviation of the subimage was also computed.
+
+A measure of \emph{coarseness} and \emph{directionality} was obtained using the Tamura definition~\cite{Tamura}.
+Contrast is a measure of image sharpness. 
+The contast was calculated using
+
+$$
+F_\text{con} = \frac{\sigma}{\alpha_4^z} \quad \text{with} \quad \alpha_4 = \frac{\mu_4}{\sigma^4}
+$$
+
+\noindent
+where $\mu_4 = \frac{1}{nm} \sum_{i=1}^n \sum_{j=1}^m (IC(i,j)-\mu)^4$
+is the fourth moment about the mean $\mu$, $z$ is \num{0.25} from experiment, and $\sigma^2$ is the variance of the image values.
+
+Directionality was computed by obtaining the approximate horizontal and vertical derivatives from convolution with the following $3\times3$ matrices, respectively $\Delta_V$ and $\Delta_H$:
+
+$$
+\begin{bmatrix}
+-1 & 0 & 1 \\ -1 & 0 & 1 \\ -1 & 0 & 1
+\end{bmatrix} \qquad
+\begin{bmatrix}
+-1 & -1 & -1 \\
+0 & 0 & 0 \\
+1 & 1 & 1
+\end{bmatrix}
+$$
+
+\noindent
+and then computing $\theta = \frac{\pi}{2} + \tan^{-1}\frac{\Delta_V(i,j)}{\Delta_H(i,j)}$ for each pixel in the image.
+These values are discretized into a sixteen bin histogram which is used as a feature.
+
+\subsection{IC Trace}
+
+\todo{this}
+
+% \begin{table}[h]
+%     \centering
+%     \scriptsize
+%     \begin{tabular}{ccc}
+%         \toprule
+        
+%         \begin{tabular}{l}
+%             candidate clustering methods \\
+%             \midrule
+%             Kernel $k$-means \\
+%             tree-structured vector quantisation \\
+%             agglomerative hierarchical clustering \\
+%             deep learning\\
+%             \\
+%         \end{tabular} & 
+
+%         \begin{tabular}{l}
+%             segmented image data over time \\
+%             \midrule
+%             principle components \\
+%             auto-encoded feature space \\
+% 	    morphological features\\ 
+% 	    dependency to surronding objects\\
+%             \\
+%         \end{tabular} & 
+
+%         \begin{tabular}{l}
+%             \calcium time histories \\
+%             \midrule
+%             frequency content \\
+%             mean peak amplitude \\
+%             mean peak width \\
+%             signal-to-noise ratio \\
+%             matched filtered data\\
+%         \end{tabular} \\
+
+%         \bottomrule
+%     \end{tabular}
+% \end{table}
+
+\section{Initial Investigation}
+
+\todo{this}
+
+% \newpage
+
+\printbibliography
+
+\end{document}
