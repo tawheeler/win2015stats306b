@@ -1,5 +1,5 @@
 
-\documentclass[11pt]{article}
+\documentclass[10pt]{article}
 
 \usepackage{pgfplots}
 \usepackage{tikz}
@@ -101,19 +101,19 @@ Features were extracted from both the black and white image frame averages and t
       \centering
       \includegraphics[width=.9\linewidth]{frame_2.png}
       \caption{\footnotesize Clean neuron source frame.}
-      \label{fig:test1}
+      \label{fig:frame1}
     \end{minipage}%
     \begin{minipage}{.33\textwidth}
       \centering
       \includegraphics[width=.9\linewidth]{frame_3.png}
       \caption{\footnotesize Background structure. }
-      \label{fig:test2}
+      \label{fig:frame2}
     \end{minipage}
     \begin{minipage}{.33\textwidth}
       \centering
       \includegraphics[width=.9\linewidth]{frame_4.png}
       \caption{\footnotesize Large neuron. }
-      \label{fig:test2}
+      \label{fig:frame3}
     \end{minipage}
     \caption{Examples of frame data. (1) contains a clean neuron source frame. (2) contains background structure in the form of blood vessels. The FWHM peak region is colored magenta. (3) contains an unknown structure which is likely a neuron. Here the peak region is much larger. }
 \end{figure}
@@ -148,7 +148,7 @@ The mean and standard deviation of the subimage was also computed.
 
 A measure of \emph{coarseness} and \emph{directionality} was obtained using the Tamura definition~\cite{Tamura1978}.
 Contrast is a measure of image sharpness. 
-The contast was calculated using
+The contrast was calculated using
 
 $$
 F_\text{con} = \frac{\sigma}{\alpha_4^z} \quad \text{with} \quad \alpha_4 = \frac{\mu_4}{\sigma^4}
@@ -175,9 +175,27 @@ $$
 and then computing $\theta = \frac{\pi}{2} + \tan^{-1}\frac{\Delta_V(i,j)}{\Delta_H(i,j)}$ for each pixel in the image.
 These values are discretized into a sixteen bin histogram which is used as a feature.
 
-\subsection{IC Trace}
+\subsection{IC Trace Features}
 
-\todo{this}
+Calcium activity for a perfectly recorded neuron is in the form of temporally sparse spikes that start with a fast jump followed by exponential decay. The sparsity of spikes and decay time constant variy between neurons~\cite{Mukamel2009}. 
+An example trace is shown in \cref{fig:trace}.
+
+The distribution of each neuronal trace is estimated in order to extract the relevant features. For each trace a \emph{high threshold} and \emph{low threshold} are calculated where the \emph{CDF} used is \num{0.97} and \num{0.03} respectively. In addition, every time the trace crosses the high threshold and low threshold line, a high crossing and low crossing event is detected. These events can be described by a \emph{rise time}, \emph{fall time} and \emph{pick value}. Average and variance of these three variables are also computed. The \emph{ratio of mean pick value to threshold value} of high or low crossings are also extraced.
+
+The sparsity of neural activity is also known to be a good indicator. Average and variance of \emph{crossing event intervals} for high and low crossings are taken as one of the sparsity features where each interval is the time distance between two picks of the crossing events.  The ratio of \emph{total crossing duration} to the total time is calculated for each family separately and taken as a sparsity measure. Neurons are expected to have primarily high crossing events. The \emph{number of high crossing events}, \emph{number of low crossing events} and the ratio of these two are also included. The final trace feature vector includes \num{30} indices.
+
+\begin{figure}[h]
+    \centering
+
+    \begin{minipage}{1\textwidth}
+      \centering
+      \includegraphics[width=0.5\linewidth]{trace.pdf}
+      \caption{\footnotesize Example neuron Calcium trace. \textcolor{blue}{blue *} indicates start, pick and end of high crossing events and \textcolor{red}{red *} indicates the same time points in low crossing events }
+      \label{fig:trace}
+    \end{minipage}
+  
+\end{figure}
+
 
 \section{Preliminary Analysis}
 
