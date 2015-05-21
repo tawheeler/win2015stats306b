@@ -217,60 +217,48 @@ The set includes \emph{image features} obtained from the grayscale frame average
 
 \subsection{Image Features}
 
-\begin{figure}[h]
-    \centering
-    \begin{minipage}{.33\textwidth}
-      \centering
-      \includegraphics[width=.9\linewidth]{frame_2.png}
-      \caption*{\footnotesize A) Clean neuron source frame.}
-      \label{fig:frame1}
-    \end{minipage}%
-    \begin{minipage}{.33\textwidth}
-      \centering
-      \includegraphics[width=.9\linewidth]{frame_3.png}
-      \caption*{\footnotesize B) Background structure. }
-      \label{fig:frame2}
-    \end{minipage}
-    \begin{minipage}{.33\textwidth}
-      \centering
-      \includegraphics[width=.9\linewidth]{frame_4.png}
-      \caption*{\footnotesize C) Large neuron. }
-      \label{fig:frame3}
-    \end{minipage}
-    \caption{\footnotesize Examples of frame data. (A) contains a clean neuron source frame. (B) contains background structure in the form of blood vessels. The FWHM peak region is colored magenta. (C) contains an unknown structure which is likely a neuron. Here the peak region is much larger. }
-\end{figure}
+% \begin{figure}[h]
+%     \centering
+%     \begin{minipage}{.33\textwidth}
+%       \centering
+%       \includegraphics[width=.9\linewidth]{frame_2.png}
+%       \caption*{\footnotesize A) Clean neuron source frame.}
+%       \label{fig:frame1}
+%     \end{minipage}%
+%     \begin{minipage}{.33\textwidth}
+%       \centering
+%       \includegraphics[width=.9\linewidth]{frame_3.png}
+%       \caption*{\footnotesize B) Background structure. }
+%       \label{fig:frame2}
+%     \end{minipage}
+%     \begin{minipage}{.33\textwidth}
+%       \centering
+%       \includegraphics[width=.9\linewidth]{frame_4.png}
+%       \caption*{\footnotesize C) Large neuron. }
+%       \label{fig:frame3}
+%     \end{minipage}
+%     \caption{\footnotesize Examples of frame data. (A) contains a clean neuron source frame. (B) contains background structure in the form of blood vessels. The FWHM peak region is colored magenta. (C) contains an unknown structure which is likely a neuron. Here the peak region is much larger. }
+% \end{figure}
 
-A set of features were extracted for each image frame.
+A set of twelve features were extracted for each image frame.
 A frame is a \num{500} by \num{500} pixel monochromatic matrix containing the average IC over the segemented field of view. 
-Image frame values vary between background noise on the order of \num{+-3} but contain sharp peak values as high as \num{100}.
-A total of eleven scalar features and sixteen histogrammed directionality features were extracted from each image.
+Image frame values background noise fluctuates on the order of \num{+-3} but contains sharp peak values as high as \num{100} in intensity.
 
-Peak blobs are identified using the full-width half-maximum (FWHM). 
-All pixels above half the maximum value are considered.
-A simple flood-fill algoithm is used to find the largest connected blob, hereafter referred to as the peak region.
+A single peak region was identified in each image using the full-width half maximum.
+All pixels above half the maximum value were considered, and a flood-fill algorithm was used to find the largest connected region, hereafter referred to as the peak region.
 
 Several features are derived directly from the peak region.
 The \emph{peak region size} is the number of pixels in the peak region, and corresponds roughly to the area of the peak region.
-The \emph{peak region perimeter} is the number of pixels on the exterior of the peak region, and corresponds roughly to the actual perimeter of the peak region. 
-An approximate measure of \emph{roundness} can be obtained by computing the ratio of the peak region size and perimeter:
-
-$$
-\text{roundness} = 4\pi \frac{\text{area}}{\text{perimeter}^2}
-$$
-
-\noindent
+The \emph{peak region perimeter} is the number of pixels on the exterior of the peak region, and corresponds roughly to the perimeter of the peak region.
+An approximate measure of \emph{roundness} was obtained by computing the ratio of the peak region size and perimeter, $\text{roundness} = 4\pi \sfrac{\text{area}}{\text{perimeter}^2}$.
 where a roundness of one corresponds roughly to a perfect circle.
-The peak region \emph{skew} is obtained by computing the $xy$-correlation between the square subsection of the image of \num{21} pixel side length centered at the peak region center.
+The peak region \emph{skew} was obtained by computing the $xy$-correlation between the square subsection of the image of twenty-one pixel side length centered at the peak region center.
 
 The \emph{peak} value of the peak region was extracted, as well as the peak region \emph{mean} and \emph{standard deviation}.
 
-A subimage of \num{24} pixel side length was extracted about the peak region center.
-The \emph{entropy} was computed over the normalized pixel values.
-The mean and standard deviation of the subimage was also computed.
-
-A measure of \emph{coarseness} and \emph{directionality} was obtained using the Tamura definition~\cite{Tamura1978}.
-Contrast is a measure of image sharpness. 
-The contrast was calculated using
+A subimage of twenty-four pixel side length was extracted about the peak region center and used to compute additional features, among them the mean and standard deviation of the subimage.
+A measure of \emph{contrast} and \emph{directionality} was obtained using the Tamura definition~\cite{Tamura1978}.
+Contrast is a measure of image sharpness, and was calculated using
 
 $$
 F_\text{con} = \frac{\sigma}{\alpha_4^z} \quad \text{with} \quad \alpha_4 = \frac{\mu_4}{\sigma^4}
@@ -280,7 +268,7 @@ $$
 where $\mu_4 = \frac{1}{nm} \sum_{i=1}^n \sum_{j=1}^m (IC(i,j)-\mu)^4$
 is the fourth moment about the mean $\mu$, $z$ is \num{0.25} from experiment, and $\sigma^2$ is the variance of the image values.
 
-Directionality was computed by obtaining the approximate horizontal and vertical derivatives from convolution with the following $3\times3$ matrices, respectively $\Delta_V$ and $\Delta_H$:
+Directionality was computed using the approximate horizontal and vertical derivatives from convolution with the following $3\times3$ matrices, respectively $\Delta_V$ and $\Delta_H$:
 
 $$
 \begin{bmatrix}
@@ -295,11 +283,11 @@ $$
 
 \noindent
 and then computing $\theta = \frac{\pi}{2} + \tan^{-1}\frac{\Delta_V(i,j)}{\Delta_H(i,j)}$ for each pixel in the image.
-\todo{These values are discretized into a sixteen bin histogram which is used as a feature.}
+These values were discretized into a sixteen bin histogram.
 
 \subsection{Trace Features}
 
-Calcium activity for a perfectly recorded neuron is in the form of temporally sparse spikes that start with a fast jump followed by exponential decay. The sparsity of spikes and decay time constant variy between neurons~\cite{Mukamel2009}. 
+Calcium activity for a perfectly recorded neuron takes the form of temporally sparse spikes that start with a fast jump followed by exponential decay. Spike sparsity and exponential decay constants vary between neurons~\cite{Mukamel2009}. 
 An example trace is shown in \cref{fig:trace}.
 
 The distribution of each neuronal trace is estimated in order to extract the relevant features. For each trace a \emph{high threshold} and \emph{low threshold} are calculated where the \emph{CDF} used is \num{0.97} and \num{0.03} respectively. In addition, every time the trace crosses the high threshold and low threshold line, a high crossing and low crossing event is detected. These events can be described by a \emph{rise time}, \emph{fall time} and \emph{pick value}. Average and variance of these three variables are also computed. The \emph{ratio of mean pick value to threshold value} of high or low crossings are also extraced.
@@ -319,7 +307,7 @@ The sparsity of neural activity is also known to be a good indicator. Average an
 % \end{figure}
 
 
-\section{Anaylsis}
+\section{Analysis}
 
 \todo{Intro discussion here.}
 
