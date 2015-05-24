@@ -133,113 +133,15 @@ Independent component traces were sampled at \num{6.7}\si{Hz}, totalling \num{12
 
 Each recording contains a few thousand extracted objects, the idendity and quantity of which will vary between recordings.
 The final feature set includes \num{5450} samples.
-A previously conducted analysis of the dataset found that it contains approximately 50\% actual neurons~\cite{Kim2011}.
+
+Each candidate object was hand-labelled as either a neuron or background structure. 
+According to this labelling approximately \num{50}\% of the candidate objects are actual neurons.
+While this labelling does provide a measure of ground-truth it is still subjective and could contain incorrect classifications.
 
 \section{Features}
 
-A set of \num{42} candidate features was extracted from the segmented image data and associated intracellular [\calcium] signals as is listed in~\cref{table:allfeatures}.
+A set of \num{42} candidate features was extracted from the segmented image data and associated intracellular [\calcium] signals as is listed in~\cref{table:allfeatures} in the Appendix.
 The set includes \emph{image features} obtained from the grayscale frame averages and \emph{trace features} from the independent component time series traces.
-
-\begin{table}[h]
-  \centering
-  \small
-  \caption{Candidate fatures extracted for each independent component in the {\calcium} imaging dataset}
-  \label{table:allfeatures}
-  \begin{tabular}{lll}
-    \toprule
-    \multicolumn{3}{c}{Image Features} \\
-    \midrule
-
-    area & pixels & peak region area  \\
-    \addlinespace[2pt]
-    perimeter & pixels & peak region perimeter \\
-    \addlinespace[2pt]
-    skew & - & peak region skew \\
-    \addlinespace[2pt]
-    peak & intensity &  maximum component intensity value  \\
-    \addlinespace[2pt]
-    roundness & - &  ratio proportional to area over squared perimeter\\
-    \addlinespace[2pt]
-    contrast & - &  contrast of normalized pixels in the component subregion \\
-    \addlinespace[2pt]
-    peak region mean & intensity &  mean intensity from pixels in peak region \\
-    \addlinespace[2pt]
-    peak region stdev & intensity\textsuperscript{2} & standard deviation of intensity from pixels in peak region \\
-    \addlinespace[2pt]
-    subregion mean & intensity &  mean intensity from pixels in component subregion \\
-    \addlinespace[2pt]
-    subregion stdev & intensity\textsuperscript{2} &  standard deviation of intensity from pixels in component subregion \\
-    \addlinespace[2pt]
-    primary directionality & - &  the directionality histogram bin of greatest value \\
-    \addlinespace[2pt]
-    directionality entropy & Hart &  the base-\num{10} entropy for the directionality histogram \\
-    \midrule
-    \multicolumn{3}{c}{Trace Features} \\
-    \midrule
-
-    mean HC duration & \si{s} &  mean duration of high crossings \\
-    \addlinespace[2pt]
-    mean HC rise time & \si{s} &  mean high crossing rise time \\
-    \addlinespace[2pt]
-    mean HC fall time & \si{s} &  mean high crossing fall time \\
-    \addlinespace[2pt]
-    var HC duration & \si{s^2} &  variance of high crossing duration \\
-    \addlinespace[2pt]
-    var HC rise time & \si{s^2} &  variance of high crossing rise time \\
-    \addlinespace[2pt]
-    var HC fall time & \si{s^2} &  variance of high crossing fall time \\
-    \addlinespace[2pt]
-    mean LC duration & \si{s} &  mean duration of low crossings \\
-    \addlinespace[2pt]
-    mean LC rise time & \si{s} &  mean low crossing rise time \\
-    \addlinespace[2pt]
-    mean LC fall time & \si{s} &  mean low crossing fall time \\
-    \addlinespace[2pt]
-    var LC duration & \si{s^2} &  variance of low crossing duration \\
-    \addlinespace[2pt]
-    var LC rise time & \si{s^2} &  variance of low crossing rise time \\
-    \addlinespace[2pt]
-    var LC fall time & \si{s^2} &  variance of low crossing fall time \\
-    \addlinespace[2pt]
-    mean HC pick & intensity &  mean high crossing pick \\
-    \addlinespace[2pt]
-    var HC pick & intensity\textsuperscript{2} &  variance of high crossing picks \\
-    \addlinespace[2pt]
-    mean HC pick per HP & intensity &  mean high crosssing pick per high point \\
-    \addlinespace[2pt]
-    HP & - &  number of high points \\
-    \addlinespace[2pt]
-    mean LC pick & intensity &  mean low crossing pick \\
-    \addlinespace[2pt]
-    var LC pick & intensity\textsuperscript{2} &  variance of low crossing picks \\
-    \addlinespace[2pt]
-    mean LC pick per LP & intensity &  mean low crossing pick per low point \\
-    \addlinespace[2pt]
-    LP & - &  number of low points \\
-    \addlinespace[2pt]
-    mean HP pick interval & \si{s} &  mean high point pick interval \\
-    \addlinespace[2pt]
-    var HC pick intervals & \si{s^2} &  variance of high crossing pick intervals \\
-    \addlinespace[2pt]
-    mean LC pick intervals & \si{s} &  mean low crossing pick interval \\
-    \addlinespace[2pt]
-    var LC pick intervals & \si{s^2} &  variance of low crossing pick interval \\
-    \addlinespace[2pt]
-    ratio of HC duration & - & overall ratio of high crossing duration \\
-    \addlinespace[2pt]
-    n HC events & - &  number of high crossing events \\
-    \addlinespace[2pt]
-    ratio of LC events & - &  overall ratio of low crossing events \\
-    \addlinespace[2pt]
-    n LC events & - &  number of low crossing events \\
-    \addlinespace[2pt]
-    ratio HC to LC duration & - &  ratio of high crossing event durations to low crossing event durations \\
-    \addlinespace[2pt]
-    ratio HC to LC events & - &  ratio of high crossing event counts to low crossing event counts \\
-
-    \bottomrule
-  \end{tabular}
-\end{table}
 
 \subsection{Image Features}
 
@@ -349,16 +251,18 @@ A final round of analysis was performed to validate the obtained clusters agains
 \subsection{Full Hierarchical Clustering}
 
 Agglomerative clustering using complete linking and Euclidean distance was conducted and the results are shown in \cref{fig:fullhierarchical}.
-The resulting dendrogram contains several well-separated clusters containing almost entirely neurons or background noise, with few samples from the opposite class.
+Six well-separated clusters were extraced from the dendrogram, four neuronal clusters and two corresponding to background structure.
 
 \begin{figure}[h]
     \centering
 
+    \hspace{-1cm}
     \begin{minipage}{0.6\textwidth}
       \centering
-      \includegraphics[width=\textwidth]{figs/fig3.png}
+      \includegraphics[width=\textwidth]{figs/fig7_cropped.pdf}
     \end{minipage}
-    \begin{minipage}{0.38\textwidth}
+    \hspace{-1cm}
+    \begin{minipage}{0.45\textwidth}
       \centering
       \footnotesize
       \begin{tabular}{cSS}
@@ -369,6 +273,8 @@ The resulting dendrogram contains several well-separated clusters containing alm
         B &  496 & 88.9 \\
         C &  428 & 90.2 \\
         D &  838 & 66.5 \\
+        High Intensity & 2121 & 14.8 \\
+        Low Intensity &  497 &  6.8 \\
         \bottomrule
       \end{tabular}
     \end{minipage}
@@ -380,66 +286,11 @@ Four clusters of high neuron content were identified, three of which contain app
 \% of all cells in the dataset.
 
 The extracted clusters appear to be group according to the depth and the layer of the soma from which the neuron is located. 
-Figure \cref{fig:clusterdepths} shows the aggregated image constructed for each cluster across the entire imaged region. 
+Figure \cref{fig:clusterdepths} in the Appendix shows the aggregated image constructed for each cluster across the entire imaged region. 
 The image of cluster A is well focused wheras the images for clusters B through D become less focused. 
 
-\begin{figure}[h]
-    \centering
+In addition to the two neuron clusters, two clusters for background structure were identified. The first corresponds to highly visible vesseles whereas the second contains low-intensity background material. These are shown in \cref{fig:clusterdepths} in the appendix.
 
-    \begin{minipage}{0.23\textwidth}
-      \centering
-      \includegraphics[width=\textwidth]{figs/composite_A.png}
-      \caption*{A}
-    \end{minipage}
-    \begin{minipage}{0.23\textwidth}
-      \centering
-      \includegraphics[width=\textwidth]{figs/composite_B.png}
-      \caption*{B}
-    \end{minipage}
-    \begin{minipage}{0.23\textwidth}
-      \centering
-      \includegraphics[width=\textwidth]{figs/composite_C.png}
-      \caption*{C}
-    \end{minipage}
-    \begin{minipage}{0.23\textwidth}
-      \centering
-      \includegraphics[width=\textwidth]{figs/composite_D.png}
-      \caption*{D}
-    \end{minipage}
-    \caption{\footnotesize Aggregate images for each neuronal cluster. Clusters appear to correspond to the depth of the soma in which neurons are located. Cluster A is most in focus, cluster D is most out of focus.}
-    \label{fig:clusterdepths}
-\end{figure}
-
-In addition to the two neuron clusters, two clusters for background structure were identified. The first corresponds to highly visible vesseles whereas the second contains low-intensity background material. These are shown in \cref{fig:clusterdepths}.
-
-\begin{figure}[h]
-    \centering
-
-    \begin{minipage}{0.23\textwidth}
-      \centering
-      \includegraphics[width=\textwidth]{figs/vessels_DC.png}
-      \caption*{High Intensity Vesseles}
-    \end{minipage}
-    \begin{minipage}{0.23\textwidth}
-      \centering
-      \includegraphics[width=\textwidth]{figs/remaining_vesseles.png}
-      \caption*{Low Intensity Vesseles}
-    \end{minipage}
-    \begin{minipage}{0.50\textwidth}
-      \centering
-      \footnotesize
-      \begin{tabular}{cSS}
-        \toprule
-        Cluster & {Size} & {Percent Neurons (\%)} \\
-        \midrule
-        High Intensity & 2121 & 14.8 \\
-         Low Intensity &  497 &  6.8 \\
-        \bottomrule
-      \end{tabular}
-    \end{minipage}
-    \caption{\footnotesize Aggregate images for background structure clusters. The high intensity structure lies in the region between clusters C and D in the dendrogram. The two clusters greatly differ in image intensity.}
-    \label{fig:clusterdepths}
-\end{figure}
 
 \subsection{Principle Component Analysis}
 
@@ -465,7 +316,7 @@ The variation curve is shown in \cref{fig:variation} along with a scatter plot o
     \label{fig:variation}
 \end{figure}
 
-A scatter plot of the matching matrix classes along with the corresponding confusion matrix are given in \cref{fig:confusion}. The scatter plot clearly shows how the majority of incorrect labels occur in the overlapping region between labels. The clusters obtain an accuracy of \num{0.844} and a precision of \num{0.870}.
+A scatter plot of the matching matrix classes along with the corresponding confusion matrix are given in \cref{fig:confusion}. The scatter plot clearly shows how the majority of incorrect labels occur in the overlapping region between labels. The clusters obtain an accuracy of \num{0.844} and a precision of \num{0.870}. Note that the ground truth class labels are based on human judgement and could contain several incorrect labels.
 
 \begin{figure}[h]
     \centering
@@ -497,11 +348,11 @@ A scatter plot of the matching matrix classes along with the corresponding confu
 
 
 An indication for the relative importance of a feature can be obtained by its weight in the first two principle components.
-The first component varies most widely in mean HC duration, mean HP pick intervals, mean HC fall time, mean HC rise time, and var HC pick intervals, in that order.
-The second component varies most widely in mean LC pick intervals, mean LC duration, mean LC fall time, mean LC rise time, and ratio of HC to LC duration. 
-The first component thus variest widest in features corresponding to high crossings whereas the second component varies most widely in features corresponding to low crossings.
+The first component varies most in mean HC duration, mean HP pick intervals, mean HC fall time, mean HC rise time, and var HC pick intervals, in that order.
+The second component varies most in mean LC pick intervals, mean LC duration, mean LC fall time, mean LC rise time, and ratio of HC to LC duration. 
+The first component thus variest most in features corresponding to high crossings whereas the second component varies most in features corresponding to low crossings.
 The first two components thus have a strongest dependence on trace features.
-The third component contains image features, varying most widely in roundness, peak region stdev, peak region mean, peak, and subimage stdev.
+The third component contains image features, varying most in roundness, peak region stdev, peak region mean, peak, and subimage stdev.
 
 \subsection{Sparse Hierarchical Clustering}
 
@@ -526,8 +377,157 @@ The third component contains image features, varying most widely in roundness, p
 
 \todo{Some ideas for future work.}
 
-% \newpage
-
 \printbibliography
+
+\newpage
+
+\section*{Appendix}
+
+\begin{table}[h]
+  \centering
+  \scriptsize
+  \caption{Candidate fatures extracted for each independent component in the {\calcium} imaging dataset}
+  \label{table:allfeatures}
+  \begin{tabular}{lll}
+    \toprule
+    \multicolumn{3}{c}{Image Features} \\
+    \midrule
+
+    area & pixels & peak region area  \\
+    \addlinespace[2pt]
+    perimeter & pixels & peak region perimeter \\
+    \addlinespace[2pt]
+    skew & - & peak region skew \\
+    \addlinespace[2pt]
+    peak & intensity &  maximum component intensity value  \\
+    \addlinespace[2pt]
+    roundness & - &  ratio proportional to area over squared perimeter\\
+    \addlinespace[2pt]
+    contrast & - &  contrast of normalized pixels in the component subregion \\
+    \addlinespace[2pt]
+    peak region mean & intensity &  mean intensity from pixels in peak region \\
+    \addlinespace[2pt]
+    peak region stdev & intensity\textsuperscript{2} & standard deviation of intensity from pixels in peak region \\
+    \addlinespace[2pt]
+    subregion mean & intensity &  mean intensity from pixels in component subregion \\
+    \addlinespace[2pt]
+    subregion stdev & intensity\textsuperscript{2} &  standard deviation of intensity from pixels in component subregion \\
+    \addlinespace[2pt]
+    primary directionality & - &  the directionality histogram bin of greatest value \\
+    \addlinespace[2pt]
+    directionality entropy & Hart &  the base-\num{10} entropy for the directionality histogram \\
+    
+    \midrule
+    \multicolumn{3}{c}{Trace Features} \\
+    \midrule
+
+    mean HC duration & \si{s} &  mean duration of high crossings \\
+    \addlinespace[2pt]
+    mean HC rise time & \si{s} &  mean high crossing rise time \\
+    \addlinespace[2pt]
+    mean HC fall time & \si{s} &  mean high crossing fall time \\
+    \addlinespace[2pt]
+    var HC duration & \si{s^2} &  variance of high crossing duration \\
+    \addlinespace[2pt]
+    var HC rise time & \si{s^2} &  variance of high crossing rise time \\
+    \addlinespace[2pt]
+    var HC fall time & \si{s^2} &  variance of high crossing fall time \\
+    \addlinespace[2pt]
+    mean LC duration & \si{s} &  mean duration of low crossings \\
+    \addlinespace[2pt]
+    mean LC rise time & \si{s} &  mean low crossing rise time \\
+    \addlinespace[2pt]
+    mean LC fall time & \si{s} &  mean low crossing fall time \\
+    \addlinespace[2pt]
+    var LC duration & \si{s^2} &  variance of low crossing duration \\
+    \addlinespace[2pt]
+    var LC rise time & \si{s^2} &  variance of low crossing rise time \\
+    \addlinespace[2pt]
+    var LC fall time & \si{s^2} &  variance of low crossing fall time \\
+    \addlinespace[2pt]
+    mean HC pick & intensity &  mean high crossing pick \\
+    \addlinespace[2pt]
+    var HC pick & intensity\textsuperscript{2} &  variance of high crossing picks \\
+    \addlinespace[2pt]
+    mean HC pick per HP & intensity &  mean high crosssing pick per high point \\
+    \addlinespace[2pt]
+    HP & - &  number of high points \\
+    \addlinespace[2pt]
+    mean LC pick & intensity &  mean low crossing pick \\
+    \addlinespace[2pt]
+    var LC pick & intensity\textsuperscript{2} &  variance of low crossing picks \\
+    \addlinespace[2pt]
+    mean LC pick per LP & intensity &  mean low crossing pick per low point \\
+    \addlinespace[2pt]
+    LP & - &  number of low points \\
+    \addlinespace[2pt]
+    mean HP pick interval & \si{s} &  mean high point pick interval \\
+    \addlinespace[2pt]
+    var HC pick intervals & \si{s^2} &  variance of high crossing pick intervals \\
+    \addlinespace[2pt]
+    mean LC pick intervals & \si{s} &  mean low crossing pick interval \\
+    \addlinespace[2pt]
+    var LC pick intervals & \si{s^2} &  variance of low crossing pick interval \\
+    \addlinespace[2pt]
+    ratio of HC duration & - & overall ratio of high crossing duration \\
+    \addlinespace[2pt]
+    n HC events & - &  number of high crossing events \\
+    \addlinespace[2pt]
+    ratio of LC events & - &  overall ratio of low crossing events \\
+    \addlinespace[2pt]
+    n LC events & - &  number of low crossing events \\
+    \addlinespace[2pt]
+    ratio HC to LC duration & - &  ratio of high crossing event durations to low crossing event durations \\
+    \addlinespace[2pt]
+    ratio HC to LC events & - &  ratio of high crossing event counts to low crossing event counts \\
+
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[h]
+    \centering
+
+    \begin{minipage}{0.49\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{figs/composite_A.png}
+      \caption*{A}
+    \end{minipage}
+    \begin{minipage}{0.49\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{figs/composite_B.png}
+      \caption*{B}
+    \end{minipage}
+
+    \begin{minipage}{0.49\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{figs/composite_C.png}
+      \caption*{C}
+    \end{minipage}
+    \begin{minipage}{0.49\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{figs/composite_D.png}
+      \caption*{D}
+    \end{minipage}
+    \caption{\footnotesize Aggregate images for each neuronal cluster. Clusters appear to correspond to the depth of the soma in which neurons are located. Cluster A is most in focus, cluster D is most out of focus.}
+    \label{fig:clusterdepths}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+
+    \begin{minipage}{0.49\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{figs/vessels_DC.png}
+      \caption*{High Intensity Vesseles}
+    \end{minipage}
+    \begin{minipage}{0.49\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{figs/remaining_vesseles.png}
+      \caption*{Low Intensity Vesseles}
+    \end{minipage}
+    \caption{\footnotesize Aggregate images for background structure clusters. The high intensity structure lies in the region between clusters C and D in the dendrogram. The two clusters greatly differ in measured intensity.}
+    \label{fig:clusterdepths}
+\end{figure}
 
 \end{document}
