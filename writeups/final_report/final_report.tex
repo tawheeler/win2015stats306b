@@ -12,6 +12,8 @@
 \usepackage{algorithmic}
 \usepackage{algorithm}
 \usepackage{booktabs}    % for beautiful tables
+\usepackage{array}    
+\usepackage{multirow}
 \usepackage{siunitx}     % for si units
 \usepackage{color}
 \usepackage{titlesec}    % for header spacing
@@ -35,6 +37,14 @@
 \titlespacing\subsubsection{0pt}{10pt plus 4pt minus 2pt}{0pt plus 2pt minus 2pt}
 
 \DeclareMathOperator*{\argmax}{arg\,max}
+
+\newcommand\MyBox[1]{
+  \fbox{\lower0.75cm
+    \vbox to 1.7cm{\vfil
+      \hbox to 1.7cm{\hfil\parbox{1.4cm}{#1}\hfil}
+      \vfil}%
+  }%
+}
 
 \newcommand{\calcium}[0]{Ca\textsuperscript{2+}}
 \newcommand{\todo}[1]{\textcolor{red}{#1}}
@@ -122,7 +132,7 @@ The pixel values correspond to the flourescent signal of the identified object, 
 Independent component traces were sampled at \num{6.7}\si{Hz}, totalling \num{1200} samples over each \num{30}-minute recording. The component traces of neurons possess indicative spikes with tapered decays corresponding to neuron activity, but also contain significant background noise.
 
 Each recording contains a few thousand extracted objects, the idendity and quantity of which will vary between recordings.
-The final feature set includes \num{5451} samples.
+The final feature set includes \num{5450} samples.
 A previously conducted analysis of the dataset found that it contains approximately 50\% actual neurons~\cite{Kim2011}.
 
 \section{Features}
@@ -237,19 +247,19 @@ The set includes \emph{image features} obtained from the grayscale frame average
     \centering
     \begin{minipage}{.33\textwidth}
       \centering
-      \includegraphics[width=.9\linewidth]{frame_2.png}
+      \includegraphics[width=.9\linewidth]{figs/frame_2.png}
       \caption*{\footnotesize A) Clean neuron source frame.}
       \label{fig:frame1}
     \end{minipage}%
     \begin{minipage}{.33\textwidth}
       \centering
-      \includegraphics[width=.9\linewidth]{frame_3.png}
+      \includegraphics[width=.9\linewidth]{figs/frame_3.png}
       \caption*{\footnotesize B) Background structure. }
       \label{fig:frame2}
     \end{minipage}
     \begin{minipage}{.33\textwidth}
       \centering
-      \includegraphics[width=.9\linewidth]{frame_4.png}
+      \includegraphics[width=.9\linewidth]{figs/frame_4.png}
       \caption*{\footnotesize C) Large neuron. }
       \label{fig:frame3}
     \end{minipage}
@@ -317,24 +327,23 @@ The sparsity of neural activity has been previously shown to be a good indicator
 
     \begin{minipage}{1\textwidth}
       \centering
-      \includegraphics[width=0.4\linewidth]{trace.pdf}
+      \includegraphics[width=0.4\linewidth]{figs/trace.pdf}
       \caption{\footnotesize Example neuron Calcium trace. \textcolor{blue}{blue *} indicates start, pick and end of high crossing events and \textcolor{red}{red *} indicates the same values for low crossing events }
       \label{fig:trace}
     \end{minipage}
-  
 \end{figure}
 
 \section{Analysis}
 
-The objective of this analysis is to identify clusters within the calcium imaging dataset which correspond to neurons and background structure, respectively. During the process it may be possible to further identify subclusters which correspond to different types of neurons or types of background structure.
+The objective of this analysis was to identify clusters within the calcium imaging dataset which correspond to neurons and background structure, respectively. During the process it may be possible to further identify subclusters which correspond to different types of neurons or types of background structure.
 
 Hierarchical clustering possesses several advantages over partitional clustering for this problem.
-First, most of the features in the dataset are continuous and poorly separated, making it difficult to a partitional algorithm such as $k$-means to accurately divide it by a valid hard boundary. 
+First, most of the features in the dataset are continuous and poorly separated, making it difficult for a partitional algorithm such as $k$-means to accurately divide it by a hard boundary. 
 Secondly, hierarchical clustering produces dendrograms, which contain a full range of clusters, allowing for the appropriate cutoff point to be chosen by a statistician via inspection. 
-\todo{Can you think of a third reason?}
+Third, hierarchical clustering is deterministic and does not require specifying the number of desired clusters ahead of time.
 
 The dataset was subjected to several forms of hierarchical clustering in an effort to identify suitable neuronal clusters and identify the most important features. 
-All analysis was done using a data matrix in which each feature vector was de-meaned and divided by its standard deviation.
+All analysis used a data matrix in which each feature vector was de-meaned and divided by its standard deviation.
 A final round of analysis was performed to validate the obtained clusters against a second withheld dataset.
 
 \subsection{Full Hierarchical Clustering}
@@ -345,82 +354,154 @@ The resulting dendrogram contains several well-separated clusters containing alm
 \begin{figure}[h]
     \centering
 
-    \begin{minipage}{0.55\textwidth}
+    \begin{minipage}{0.6\textwidth}
       \centering
-      \includegraphics[width=0.9\textwidth]{/home/tim/Documents/Schoolwork/win2015stats306b/code/heatmap.pdf}
+      \includegraphics[width=\textwidth]{figs/fig3.png}
     \end{minipage}
-    \begin{minipage}{0.4\textwidth}
+    \begin{minipage}{0.38\textwidth}
       \centering
-      \scriptsize
+      \footnotesize
       \begin{tabular}{cSS}
         \toprule
-        Cluster & {Size} & {Percent Neuronal Content} \\
+        Cluster & {Size} & {Percent Neurons (\%)} \\
         \midrule
-        cluster 1 & 2500 & 95.0 \\
-        cluster 2 & 1500 & 95.0 \\
-        cluster 3 & 2500 &  5.0 \\
-        cluster 4 & 2500 &  3.0 \\
+        A & 1070 & 88.3 \\
+        B &  496 & 88.9 \\
+        C &  428 & 90.2 \\
+        D &  838 & 66.5 \\
         \bottomrule
       \end{tabular}
     \end{minipage}
-    \caption{\footnotesize Full hierarchical clustering and associated cluster statistics. \todo{Re-run with correctly labelled trace features and color-code.}}
+    \caption{\footnotesize Full hierarchical clustering and associated cluster statistics.}
     \label{fig:fullhierarchical}
 \end{figure}
 
-\todo{Proceed with an investigation of the cluster contents. Are the neuronal clusters different? Are the background clusters different?}
-\todo{Include scatter plots with important features, etc.}
+Four clusters of high neuron content were identified, three of which contain approximately \num{90}\% neurons and a fourth containing \num{66.5}\%. Together, these four clusters account for \num{87}
+\% of all cells in the dataset.
 
-\subsection{Principle Component Analysis}
-
-Further insight into the relative importance of features in clustering was obtained by investigating the principle components.
-A principle component analysis of the data matrix revealed that \todo{XX\%} of the variation in the data is captured in the first two components.
-The first component variest most widely in \todo{blah blah.}
-The second principle component variest captures additional variatio in \todo{blah blah}.
+The extracted clusters appear to be group according to the depth and the layer of the soma from which the neuron is located. 
+Figure \cref{fig:clusterdepths} shows the aggregated image constructed for each cluster across the entire imaged region. 
+The image of cluster A is well focused wheras the images for clusters B through D become less focused. 
 
 \begin{figure}[h]
     \centering
 
-    \begin{minipage}{0.4\textwidth}
+    \begin{minipage}{0.23\textwidth}
       \centering
-      \begin{tikzpicture}
-        \begin{axis}[%
-            scatter/classes={%
-                sb={mark=square*,   color3},%
-                tb={mark=triangle*, color3},%
-                sr={mark=square*,   color2},%
-                tr={mark=triangle*, color2},%
-                sk={mark=square,    draw=black},%
-                tk={mark=triangle,  draw=black}%
-                },
-            legend style={at={(1.03,1.0)}, anchor=north west},
-            xlabel=first principle component,
-            ylabel=second principle component
-            ]
-            
-            \addplot[scatter,only marks, scatter src=explicit symbolic] table[meta=label] {
-                        x     y      label
-                        0.1   0.15   sr
-                        0.45  0.27   tb
-                        0.02  0.17   sr
-                        0.06  0.1    sb
-                        0.9   0.5    sb
-                        0.5   0.3    tb
-                        0.85  0.52   sr
-                        0.12  0.05   sr
-                        0.73  0.45   tb
-                        0.53  0.25   sk
-                        0.76  0.5    sk
-                        0.55  0.32   tr
-            };
-            \legend{True Positive, True Negative, False Positive, False Negative, Neuron Outlier, Other Outlier};
-        \end{axis}
-      \end{tikzpicture}
+      \includegraphics[width=\textwidth]{figs/composite_A.png}
+      \caption*{A}
     \end{minipage}
-    \caption{\footnotesize Scatter plot of clusters. \todo{Load correct data from csv} }
-    \label{fig:fullhierarchical}
+    \begin{minipage}{0.23\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{figs/composite_B.png}
+      \caption*{B}
+    \end{minipage}
+    \begin{minipage}{0.23\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{figs/composite_C.png}
+      \caption*{C}
+    \end{minipage}
+    \begin{minipage}{0.23\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{figs/composite_D.png}
+      \caption*{D}
+    \end{minipage}
+    \caption{\footnotesize Aggregate images for each neuronal cluster. Clusters appear to correspond to the depth of the soma in which neurons are located. Cluster A is most in focus, cluster D is most out of focus.}
+    \label{fig:clusterdepths}
 \end{figure}
 
-\todo{Include some more discussion of results.}
+In addition to the two neuron clusters, two clusters for background structure were identified. The first corresponds to highly visible vesseles whereas the second contains low-intensity background material. These are shown in \cref{fig:clusterdepths}.
+
+\begin{figure}[h]
+    \centering
+
+    \begin{minipage}{0.23\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{figs/vessels_DC.png}
+      \caption*{High Intensity Vesseles}
+    \end{minipage}
+    \begin{minipage}{0.23\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{figs/remaining_vesseles.png}
+      \caption*{Low Intensity Vesseles}
+    \end{minipage}
+    \begin{minipage}{0.50\textwidth}
+      \centering
+      \footnotesize
+      \begin{tabular}{cSS}
+        \toprule
+        Cluster & {Size} & {Percent Neurons (\%)} \\
+        \midrule
+        High Intensity & 2121 & 14.8 \\
+         Low Intensity &  497 &  6.8 \\
+        \bottomrule
+      \end{tabular}
+    \end{minipage}
+    \caption{\footnotesize Aggregate images for background structure clusters. The high intensity structure lies in the region between clusters C and D in the dendrogram. The two clusters greatly differ in image intensity.}
+    \label{fig:clusterdepths}
+\end{figure}
+
+\subsection{Principle Component Analysis}
+
+Further insight into the relative importance of features in clustering was obtained by investigating the principle components.
+The first two principle components capture \num{23.6}\% of the variation in the data.
+The original feature space is moderately uncorrelated.
+Capturing \num{90}\% of the variation requires using the first \num{23} out of \num{42} principle components.
+The variation curve is shown in \cref{fig:variation} along with a scatter plot of the ground-truth classification.
+
+\begin{figure}[h]
+    \centering
+
+    \begin{minipage}{0.25\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{figs/variation.pdf}
+    \end{minipage}
+    \begin{minipage}{0.70\textwidth}
+      \centering
+      \vspace{2mm}
+      \includegraphics[width=\textwidth]{figs/PCA_scatter_cropped.pdf}
+    \end{minipage}
+    \caption{\footnotesize The variation curve and Ground truth scatter along first two principle components}
+    \label{fig:variation}
+\end{figure}
+
+A scatter plot of the matching matrix classes along with the corresponding confusion matrix are given in \cref{fig:confusion}. The scatter plot clearly shows how the majority of incorrect labels occur in the overlapping region between labels. The clusters obtain an accuracy of \num{0.844} and a precision of \num{0.870}.
+
+\begin{figure}[h]
+    \centering
+
+    \begin{minipage}{0.5\textwidth}
+      \centering
+      \includegraphics[width=0.8\textwidth]{figs/PCA_confusion.pdf}
+    \end{minipage}
+    \begin{minipage}{0.45\textwidth}
+      \centering
+      \scriptsize
+
+        \renewcommand\arraystretch{1.5}
+        \setlength\tabcolsep{0pt}
+        \begin{tabular}{c >{\bfseries}r @{\hspace{0.7em}}c @{\hspace{0.4em}}c @{\hspace{0.7em}}l}
+          \multirow{10}{*}{\parbox{1.1cm}{\bfseries\raggedleft Actual\\ Value}} & 
+            & \multicolumn{2}{c}{\bfseries Predicted Outcome} & \\
+          & & \bfseries p & \bfseries n & \bfseries total \\
+          & p$'$ & \MyBox{\num{2329}} & \MyBox{\num{503}}  & \num{2832} \\[2.4em]
+          \addlinespace[0.3em]
+          & n$'$ & \MyBox{\num{347}} &  \MyBox{\num{2271}} & \num{2618} \\
+          & total & \num{2676} & \num{2744} &
+        \end{tabular}
+
+    \end{minipage}
+    \caption{\footnotesize Matching matrix scatter plot and the corresponding confusion matrix. Accuracy: \num{0.844}, Precision: \num{0.870}}
+    \label{fig:confusion}
+\end{figure}
+
+
+An indication for the relative importance of a feature can be obtained by its weight in the first two principle components.
+The first component varies most widely in mean HC duration, mean HP pick intervals, mean HC fall time, mean HC rise time, and var HC pick intervals, in that order.
+The second component varies most widely in mean LC pick intervals, mean LC duration, mean LC fall time, mean LC rise time, and ratio of HC to LC duration. 
+The first component thus variest widest in features corresponding to high crossings whereas the second component varies most widely in features corresponding to low crossings.
+The first two components thus have a strongest dependence on trace features.
+The third component contains image features, varying most widely in roundness, peak region stdev, peak region mean, peak, and subimage stdev.
 
 \subsection{Sparse Hierarchical Clustering}
 
