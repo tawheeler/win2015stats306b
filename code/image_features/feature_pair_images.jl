@@ -37,7 +37,7 @@ function df_to_sample_matrix(df::DataFrame)
         
         column += 1
         sym = name_vec[column]
-        if sym != :iscell && sym != :directory && sym != :objectnumber
+        if sym != :isCell && sym != :directory && sym != :objectnumber
             X[column,:] = array(df[sym])
         else
             deleteat!(name_vec, column)
@@ -129,19 +129,23 @@ function pair_image(X::Matrix{Float64}, iscell::Vector{Int}, xlabel::String, yla
     ax[:scatter](x_arr[vessel_inds], y_arr[vessel_inds], color=color_B)
     ax[:set_xlabel](xlabel)
     ax[:set_ylabel](ylabel)
+
+    fig
 end
 
-# df = load_dataset()
-# X, name_vec = df_to_sample_matrix(df)
-# X2 = impute_SVD(X, 10)
-# println(X2[11,1:20])
-# export_dset(df, X2, name_vec)
+df = load_dataset()
+X, name_vec = df_to_sample_matrix(df)
+X2 = impute_SVD(X, 10)
+println(X2[11,1:20])
+export_dset(df, X2, name_vec)
 
 
-iscell = array(df[:iscell])
+iscell = array(df[:isCell])
 for i = 1 : 2 : length(name_vec)
     indA, indB = i,i+1
-    pair_image(X2, iscell, string(name_vec[indA]), string(name_vec[indB]), indA, indB)
+    str_feature_1 = string(name_vec[indA])
+    str_feature_2 = string(name_vec[indB])
+    fig = pair_image(X2, iscell, str_feature_1, str_feature_2, indA, indB)
+    outfile = @sprintf("../color_plots/plot_%s_vs_%s.png", str_feature_1, str_feature_2)
+    savefig(outfile)
 end
-
-

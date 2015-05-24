@@ -354,7 +354,9 @@ function blob_directionality_histogram(subimage::Matrix)
                0  0  0;
                1  1  1]
 
-    histobins = zeros(Int,16) # for angles 0 to pi
+    n_bins = 16
+
+    histobins = ones(Int,n_bins) # for angles 0 to pi (adding uniform Laplace prior counts)
 
     m,n = size(subimage)
     for i = 2 : m-1
@@ -377,11 +379,12 @@ function blob_directionality_histogram(subimage::Matrix)
 
             
             # println(θ)
-            bin = int(θ * 15 / π) + 1
+            bin = int(θ * (n_bins-1) / π) + 1
             histobins[bin] += 1
         end
     end
-    histobins
+
+    histobins ./ sum(histobins)
 end
 
 function dataset_index_matching_criteria(df::DataFrame)
@@ -423,23 +426,20 @@ function process_data(dir::String;
     nfiles = length(files)
 
     df = DataFrame()
-    df[:objectnumber]    = Array(Int, nfiles)
-    df[:area]            = Array(Int, nfiles)
-    df[:perimeter]       = Array(Int, nfiles)
-    df[:skew]            = Array(Float64, nfiles)
-    df[:peak]            = Array(Float64, nfiles)
-    df[:roundness]       = Array(Float64, nfiles)
-    df[:entropy]         = Array(Float64, nfiles)
-    df[:contrast]        = Array(Float64, nfiles)
-    df[:blob_mean]       = Array(Float64, nfiles)
-    df[:blob_stdev]      = Array(Float64, nfiles)
-    df[:subim_mean]      = Array(Float64, nfiles)
-    df[:subim_stdev]     = Array(Float64, nfiles)
-    for i = 1 : 16
-        sym = symbol(@sprintf("directionality%d", i))
-        df[sym] = Array(Int, nfiles)
-    end
-
+    df[:objectnumber]           = Array(Int,     nfiles)
+    df[:area]                   = Array(Int,     nfiles)
+    df[:perimeter]              = Array(Int,     nfiles)
+    df[:skew]                   = Array(Float64, nfiles)
+    df[:peak]                   = Array(Float64, nfiles)
+    df[:roundness]              = Array(Float64, nfiles)
+    # df[:entropy]                = Array(Float64, nfiles)
+    df[:contrast]               = Array(Float64, nfiles)
+    df[:blob_mean]              = Array(Float64, nfiles)
+    df[:blob_stdev]             = Array(Float64, nfiles)
+    df[:subim_mean]             = Array(Float64, nfiles)
+    df[:subim_stdev]            = Array(Float64, nfiles)
+    df[:directionality_primary] = Array(Float64, nfiles)   # location of strongest directionality
+    df[:directionality_entropy] = Array(Float64, nfiles) # entropy of directionality
 
     count = 0
     for (i,file) in enumerate(files)
@@ -471,27 +471,23 @@ function process_data(dir::String;
 
             if length(subim) != 1
                 nsubim = normalize_image(subim)
-
-                df[count,:peak]         = maximum(subim)
-                df[count,:subim_mean]   = mean(subim)
-                df[count,:subim_stdev]  = stdm(subim, df[count,:subim_mean])
-                df[count,:entropy]      = blob_entropy(nsubim)
-                df[count,:contrast]     = blob_contrast(nsubim)    
                 hist = blob_directionality_histogram(nsubim)
-                for i = 1 : 16
-                    sym = symbol(@sprintf("directionality%d", i))
-                    df[count,sym] = hist[i]
-                end
+
+                df[count,:peak]                   = maximum(subim)
+                df[count,:subim_mean]             = mean(subim)
+                df[count,:subim_stdev]            = stdm(subim, df[count,:subim_mean])
+                # df[count,:entropy]                = blob_entropy(nsubim)
+                df[count,:contrast]               = blob_contrast(nsubim)
+                df[count,:directionality_primary] = indmax(hist)
+                df[count,:directionality_entropy] = -sum(hist .* log(hist))
             else
-                df[count,:peak]         = NaN
-                df[count,:subim_mean]   = NaN
-                df[count,:subim_stdev]  = NaN
-                df[count,:entropy]      = NaN
-                df[count,:contrast]     = NaN
-                for i = 1 : 16
-                    sym = symbol(@sprintf("directionality%d", i))
-                    df[count,sym] = -1
-                end
+                df[count,:peak]                   = NaN
+                df[count,:subim_mean]             = NaN
+                df[count,:subim_stdev]            = NaN
+                # df[count,:entropy]                = NaN
+                df[count,:contrast]               = NaN
+                df[count,:directionality_primary] = NaN
+                df[count,:directionality_entropy] = NaN
             end
 
         end
@@ -528,22 +524,20 @@ function pull_aggregate_stats()
     data[:skew]            = Array(Float64, n_values)
     data[:peak]            = Array(Float64, n_values)
     data[:roundness]       = Array(Float64, n_values)
-    data[:entropy]         = Array(Float64, n_values)
     data[:contrast]        = Array(Float64, n_values)
     data[:blob_mean]       = Array(Float64, n_values)
     data[:blob_stdev]      = Array(Float64, n_values)
     data[:subim_mean]      = Array(Float64, n_values)
     data[:subim_stdev]     = Array(Float64, n_values)
-    for i = 1 : 16
-        sym = symbol(@sprintf("directionality%d", i))
-        data[sym] = Array(Int, n_values)
-    end
+    data[:directionality_primary] = Array(Float64, n_values)
+    data[:directionality_entropy] = Array(Float64, n_values)
 
     count = 0
     for i in file_numbers
 
         dirname = "/media/tim/Tim 1500 GB/extracted/Obj_" * string(i) * "/"
         df = readtable(dirname*"features.csv")
+        println(names(df))
         data[count+1:count+size(df,1),2:end] = df
         data[count+1:count+size(df,1),:directory] = i
         count += size(df, 1)

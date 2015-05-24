@@ -90,21 +90,29 @@ This project applies clustering methods to candidate objects in a one-photon {\c
 
 \section{Introduction}
 
-\todo{Introduce away}
+A fundamental objective for neuroscience is understanding the relationship between neuron activity and resulting high level behavior.
+Recent studies have sought to use recorded neuronal activity in live animals performing various tasks in order to obtain correlations between individual neurons or groups of neurons to the animal's behavior. Fluorescence microscopy is one recording method which picks up fluorescent markers given off by neurons in the brain, modulated by their ``firing'', and allows for the simultaneous imaging of large cranial regions.
 
-% One proposed method leverages spatio-temporal sparseness in elevated [\calcium] levels to identify neuronal spikes and associate them with particular regions in the source frames.
-% The resulting work suffers from the presence of background structure such as blood vessels.
-% This project aims to apply unsupervised learning methods to identify classes of identified objects from one-photon {\calcium} imaging in the primary visual cortex (V1) of awake behaving mice to aid in the automatic unsupervised classification of neurons from background structures.
+The work presented in this paper is based on data obtained by the Schnitzer group which collected neuron activity in freely-behaving mice and rats~\cite{Ghosh2011}. 
+A fluorescent microscope surgically attached to the skull collects data as the animal wanders about its environment.
+This results in a video recording of a \num{500} $\mu$m $\times$ \num{500} $\mu$m section of the primary visual cortex.
 
-\todo{Cover prior work}
-
-\todo{Paper organization and results}
-
-
-\section{Data Source}
 
 Previous work by \citeauthor{Mukamel2009} obtained one-photon {\calcium} imaging recordings from the primary visual cortex of awake behaving mice.
 Their work isolated candidate objects from cortex recordings of mice performing a go/no-go task for \num{30}-minute sessions over three consecutive days.
+They demonstrated a novel method which leveraged spatio-temporal sparseness in elevated [\calcium] levels to identify neuronal spikes and associate them with particular regions in the source frames.
+The resulting set of candidate neurons includes background structures such as blood vessels alongside actual neurons.
+This project aims to apply unsupervised learning methods to automatically classify neurons from background structure.
+
+Several forms of analysis are applied to the dataset.
+First, an extensive set of features were extracted from both each candidate object's signal trace and averaged calcium image.
+Second, full and sparse hierarchical clustering were performed to identify preliminary neuronal classes.
+The importance of various features were compared and suitable clusters were identified.
+Finally, group validation was performed by comparing the clusters obtained in the first dataset to the clusters obtained in a withheld dataset.
+
+\section{Data Source}
+
+
 This work uses the isolated candidate objects, including frame images assocated with each of the extracted independent components and averaged signal traces associated with each candidate.
 
 The complete cortex recording was segmented into a four-by-four grid.
@@ -115,7 +123,7 @@ Independent component traces were sampled at \num{6.7}\si{Hz}, totalling \num{12
 
 Each recording contains a few thousand extracted objects, the idendity and quantity of which will vary between recordings.
 The final feature set includes \num{5451} samples.
-A previously conducted analysis of the dataset found that it contains approximately 50\% actual neurons~\todo{CITE?}.
+A previously conducted analysis of the dataset found that it contains approximately 50\% actual neurons~\cite{Kim2011}.
 
 \section{Features}
 
@@ -159,65 +167,65 @@ The set includes \emph{image features} obtained from the grayscale frame average
     \multicolumn{3}{c}{Trace Features} \\
     \midrule
 
-    \todo{trace 1} & \todo{???} &  \todo{a trace feature} \\
+    mean HC duration & \si{s} &  mean duration of high crossings \\
     \addlinespace[2pt]
-    \todo{trace 2} & \todo{???} &  \todo{a trace feature} \\
+    mean HC rise time & \si{s} &  mean high crossing rise time \\
     \addlinespace[2pt]
-    \todo{trace 3} & \todo{???} &  \todo{a trace feature} \\
+    mean HC fall time & \si{s} &  mean high crossing fall time \\
     \addlinespace[2pt]
-    \todo{trace 4} & \todo{???} &  \todo{a trace feature} \\
+    var HC duration & \si{s^2} &  variance of high crossing duration \\
     \addlinespace[2pt]
-    \todo{trace 5} & \todo{???} &  \todo{a trace feature} \\
+    var HC rise time & \si{s^2} &  variance of high crossing rise time \\
     \addlinespace[2pt]
-    \todo{trace 6} & \todo{???} &  \todo{a trace feature} \\
+    var HC fall time & \si{s^2} &  variance of high crossing fall time \\
     \addlinespace[2pt]
-    \todo{trace 7} & \todo{???} &  \todo{a trace feature} \\
+    mean LC duration & \si{s} &  mean duration of low crossings \\
     \addlinespace[2pt]
-    \todo{trace 8} & \todo{???} &  \todo{a trace feature} \\
+    mean LC rise time & \si{s} &  mean low crossing rise time \\
     \addlinespace[2pt]
-    \todo{trace 9} & \todo{???} &  \todo{a trace feature} \\
+    mean LC fall time & \si{s} &  mean low crossing fall time \\
     \addlinespace[2pt]
-    \todo{trace 10} & \todo{???} &  \todo{a trace feature} \\
+    var LC duration & \si{s^2} &  variance of low crossing duration \\
     \addlinespace[2pt]
-    \todo{trace 11} & \todo{???} &  \todo{a trace feature} \\
+    var LC rise time & \si{s^2} &  variance of low crossing rise time \\
     \addlinespace[2pt]
-    \todo{trace 12} & \todo{???} &  \todo{a trace feature} \\
+    var LC fall time & \si{s^2} &  variance of low crossing fall time \\
     \addlinespace[2pt]
-    \todo{trace 13} & \todo{???} &  \todo{a trace feature} \\
+    mean HC pick & intensity &  mean high crossing pick \\
     \addlinespace[2pt]
-    \todo{trace 14} & \todo{???} &  \todo{a trace feature} \\
+    var HC pick & intensity\textsuperscript{2} &  variance of high crossing picks \\
     \addlinespace[2pt]
-    \todo{trace 15} & \todo{???} &  \todo{a trace feature} \\
+    mean HC pick per HP & intensity &  mean high crosssing pick per high point \\
     \addlinespace[2pt]
-    \todo{trace 16} & \todo{???} &  \todo{a trace feature} \\
+    HP & - &  number of high points \\
     \addlinespace[2pt]
-    \todo{trace 17} & \todo{???} &  \todo{a trace feature} \\
+    mean LC pick & intensity &  mean low crossing pick \\
     \addlinespace[2pt]
-    \todo{trace 18} & \todo{???} &  \todo{a trace feature} \\
+    var LC pick & intensity\textsuperscript{2} &  variance of low crossing picks \\
     \addlinespace[2pt]
-    \todo{trace 19} & \todo{???} &  \todo{a trace feature} \\
+    mean LC pick per LP & intensity &  mean low crossing pick per low point \\
     \addlinespace[2pt]
-    \todo{trace 20} & \todo{???} &  \todo{a trace feature} \\
+    LP & - &  number of low points \\
     \addlinespace[2pt]
-    \todo{trace 21} & \todo{???} &  \todo{a trace feature} \\
+    mean HP pick interval & \si{s} &  mean high point pick interval \\
     \addlinespace[2pt]
-    \todo{trace 22} & \todo{???} &  \todo{a trace feature} \\
+    var HC pick intervals & \si{s^2} &  variance of high crossing pick intervals \\
     \addlinespace[2pt]
-    \todo{trace 23} & \todo{???} &  \todo{a trace feature} \\
+    mean LC pick intervals & \si{s} &  mean low crossing pick interval \\
     \addlinespace[2pt]
-    \todo{trace 24} & \todo{???} &  \todo{a trace feature} \\
+    var LC pick intervals & \si{s^2} &  variance of low crossing pick interval \\
     \addlinespace[2pt]
-    \todo{trace 25} & \todo{???} &  \todo{a trace feature} \\
+    ratio of HC duration & - & overall ratio of high crossing duration \\
     \addlinespace[2pt]
-    \todo{trace 26} & \todo{???} &  \todo{a trace feature} \\
+    n HC events & - &  number of high crossing events \\
     \addlinespace[2pt]
-    \todo{trace 27} & \todo{???} &  \todo{a trace feature} \\
+    ratio of LC events & - &  overall ratio of low crossing events \\
     \addlinespace[2pt]
-    \todo{trace 28} & \todo{???} &  \todo{a trace feature} \\
+    n LC events & - &  number of low crossing events \\
     \addlinespace[2pt]
-    \todo{trace 29} & \todo{???} &  \todo{a trace feature} \\
+    ratio HC to LC duration & - &  ratio of high crossing event durations to low crossing event durations \\
     \addlinespace[2pt]
-    \todo{trace 30} & \todo{???} &  \todo{a trace feature} \\
+    ratio HC to LC events & - &  ratio of high crossing event counts to low crossing event counts \\
 
     \bottomrule
   \end{tabular}
@@ -300,21 +308,21 @@ The corresponding features were imputed using the method of iterated singular va
 Calcium activity for a perfectly recorded neuron takes the form of temporally sparse spikes that start with a fast jump followed by exponential decay. Spike sparsity and exponential decay constants vary between neurons~\cite{Mukamel2009}. 
 An example trace is shown in \cref{fig:trace}.
 
-For each trace a \emph{high threshold} and \emph{low threshold} were calculated where the \emph{CDF} used is \todo{\num{0.97}} and \todo{\num{0.03}} respectively. In addition, every time the trace crosses the high threshold and low threshold line, a high crossing and low crossing event is detected. These events can be described by a \emph{rise time}, \emph{fall time} and \emph{pick value}. Average and variance of these three variables were also computed. The \emph{ratio of mean pick value to threshold value} of high or low crossings were also extraced.
+For each trace a \emph{high threshold} and \emph{low threshold} were calculated where the \emph{CDF} used is \todo{\num{0.97}} and \todo{\num{0.03}} respectively. In addition, every time the trace crosses the high threshold and low threshold line, a high crossing and low crossing event is detected. These events can be described by a \emph{rise time}, \emph{fall time} and \emph{pick value}. The mean and variance of these three variables were also computed. The \emph{ratio of mean pick value to threshold value} of high or low crossings were also extraced.
 
 The sparsity of neural activity has been previously shown to be a good indicator~\cite{Kim2011}. Average and variance of \emph{crossing event intervals} for high and low crossings were taken where each interval is the time distance between two picks of the crossing events.  The ratio of \emph{total crossing duration} to the total time were calculated for each family separately and taken as a sparsity measure. Neurons are expected to have primarily high crossing events. The \emph{number of high crossing events}, \emph{number of low crossing events} and the ratio of these two were also included. The final trace feature vector includes \num{30} indices.
 
-% \begin{figure}[h]
-%     \centering
+\begin{figure}[h]
+    \centering
 
-%     \begin{minipage}{1\textwidth}
-%       \centering
-%       \includegraphics[width=0.5\linewidth]{trace.pdf}
-%       \caption{\footnotesize Example neuron Calcium trace. \textcolor{blue}{blue *} indicates start, pick and end of high crossing events and \textcolor{red}{red *} indicates the same time points in low crossing events }
-%       \label{fig:trace}
-%     \end{minipage}
+    \begin{minipage}{1\textwidth}
+      \centering
+      \includegraphics[width=0.4\linewidth]{trace.pdf}
+      \caption{\footnotesize Example neuron Calcium trace. \textcolor{blue}{blue *} indicates start, pick and end of high crossing events and \textcolor{red}{red *} indicates the same values for low crossing events }
+      \label{fig:trace}
+    \end{minipage}
   
-% \end{figure}
+\end{figure}
 
 \section{Analysis}
 
