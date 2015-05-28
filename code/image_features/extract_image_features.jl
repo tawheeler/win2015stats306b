@@ -1,5 +1,3 @@
-# TODO:
-#  4 - compute skew from x-y correlation
 
 using Distributions
 using ImageView
@@ -499,7 +497,7 @@ function process_data(dir::String;
 end
 function process_all_data()
     for i in [1:16]
-        dirname = "/media/tim/Tim 1500 GB/extracted/Obj_" * string(i) * "/"
+        dirname = "/media/tim/Tim 1500 GB/extracted2/Obj_" * string(i) * "/"
         println("processing ", dirname)
         process_data(dirname)
     end
@@ -511,7 +509,7 @@ function pull_aggregate_stats()
 
     n_values = 0
     for i in file_numbers
-        dirname = "/media/tim/Tim 1500 GB/extracted/Obj_" * string(i) * "/"
+        dirname = "/media/tim/Tim 1500 GB/extracted2/Obj_" * string(i) * "/"
         df = readtable(dirname*"features.csv")
         n_values += size(df, 1)
     end
@@ -535,7 +533,7 @@ function pull_aggregate_stats()
     count = 0
     for i in file_numbers
 
-        dirname = "/media/tim/Tim 1500 GB/extracted/Obj_" * string(i) * "/"
+        dirname = "/media/tim/Tim 1500 GB/extracted2/Obj_" * string(i) * "/"
         df = readtable(dirname*"features.csv")
         println(names(df))
         data[count+1:count+size(df,1),2:end] = df
@@ -543,7 +541,7 @@ function pull_aggregate_stats()
         count += size(df, 1)
     end
 
-    writetable("/media/tim/Tim 1500 GB/extracted/all_image_features.csv", data)
+    writetable("/media/tim/Tim 1500 GB/extracted2/all_image_features.csv", data)
     data
 end
 function plot_histograms(df::DataFrame)

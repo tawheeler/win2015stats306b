@@ -3,11 +3,11 @@ using Clustering
 using PyPlot
 
 function load_dataset()
-    df = readtable("../all_data.csv")
+    df = readtable("../all_data2.csv")
 
     # remove entropy
-    ind_entropy = findfirst(sym->sym == :entropy, names(df))
-    df = df[:,[1:ind_entropy-1, ind_entropy+1:end]]
+    # ind_entropy = findfirst(sym->sym == :entropy, names(df))
+    # df = df[:,[1:ind_entropy-1, ind_entropy+1:end]]
 end
 function export_dset(df::DataFrame, X::Matrix{Float64}, names::Vector{Symbol})
 
@@ -23,13 +23,13 @@ function export_dset(df::DataFrame, X::Matrix{Float64}, names::Vector{Symbol})
         end
     end
 
-    writetable("imputed_values.csv", df2)
+    writetable("all_data_imputed2.csv", df2)
 end
 function df_to_sample_matrix(df::DataFrame)
 
     m,n = size(df)
 
-    X = Array(Float64, n-3, m)
+    X = Array(Float64, n-2, m)
     name_vec = names(df)
 
     column = 0
@@ -140,12 +140,12 @@ println(X2[11,1:20])
 export_dset(df, X2, name_vec)
 
 
-iscell = array(df[:isCell])
-for i = 1 : 2 : length(name_vec)
-    indA, indB = i,i+1
-    str_feature_1 = string(name_vec[indA])
-    str_feature_2 = string(name_vec[indB])
-    fig = pair_image(X2, iscell, str_feature_1, str_feature_2, indA, indB)
-    outfile = @sprintf("../color_plots/plot_%s_vs_%s.png", str_feature_1, str_feature_2)
-    savefig(outfile)
-end
+# iscell = array(df[:isCell])
+# for i = 1 : 2 : length(name_vec)
+#     indA, indB = i,i+1
+#     str_feature_1 = string(name_vec[indA])
+#     str_feature_2 = string(name_vec[indB])
+#     fig = pair_image(X2, iscell, str_feature_1, str_feature_2, indA, indB)
+#     outfile = @sprintf("../color_plots/plot_%s_vs_%s.png", str_feature_1, str_feature_2)
+#     savefig(outfile)
+# end

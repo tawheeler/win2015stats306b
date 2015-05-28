@@ -1,9 +1,8 @@
 
 using DataFrames
 
-
-df_trace = readtable("../trace_features.csv", header=false)
-df_image = readtable("../all_image_features.csv")
+df_trace = readtable("../trace_features2.csv", header=false)
+df_image = readtable("../all_image_features2.csv")
 
 trace_names = Array(Symbol, size(df_trace,2))
 trace_names[1] = :isCell
@@ -25,4 +24,4 @@ p = sortperm(order_index) # sort smallest to highest
 
 df = hcat(df_image[p,:], df_trace)
 
-writetable("../all_data.csv", df)
+writetable("../all_data2.csv", df)
