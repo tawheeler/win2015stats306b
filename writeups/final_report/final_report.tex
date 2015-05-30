@@ -90,11 +90,9 @@ Fluorescent imaging allows for the analysis of signalling behavior on a per-neur
 Existing methods monitor {\calcium} dynamics over a large region, but recently developed automated methods allow for isolating signals and associating them with particular neurons.
 The resulting set of candidate neurons suffers from the presence of background structures such as blood vessels.
 This project applies clustering methods to candidate objects in a one-photon {\calcium} dataset for the classification of neurons from background structures.
-\todo{Hierarchical clustering was performed to identify preliminary classes.}
-\todo{Principle component analysis was performed to identify preliminary important features and a clustering analysis was conducted using the first two principle components.}
-\todo{Sparse clustering and sparse principle component analysis were conducted to identify a reduced featureset which captures the majority of the variation in the data.}
-\todo{Group validation was performed by comparing the clusters obtained in the first dataset to the clusters obtained in a withheld dataset.}
-\todo{Results indicate...}
+Hierarchical clustering was performed to identify preliminary classes, resulting in several neuronal clusters which likely correspond to various layers in the brain.
+Principle component analysis was performed to identify preliminary important features and identify a reduced featureset which captures the majority of the variation in the data.
+Group validation was performed by comparing the clusters obtained in the first dataset to the clusters obtained in a withheld dataset.
 \end{abstract}
 
 
@@ -269,12 +267,12 @@ Six well-separated clusters were extraced from the dendrogram, four neuronal clu
         \toprule
         Cluster & {Size} & {Percent Neurons (\%)} \\
         \midrule
-        A & 1070 & 88.3 \\
-        B &  496 & 88.9 \\
-        C &  428 & 90.2 \\
-        D &  838 & 66.5 \\
-        High Intensity & 2121 & 14.8 \\
-        Low Intensity &  497 &  6.8 \\
+        Neuron A & 1070 & 88.3 \\
+        Neuron B &  496 & 88.9 \\
+        Neuron C &  428 & 90.2 \\
+        Neuron D &  838 & 66.5 \\
+        Structure High & 2121 & 14.8 \\
+        Structure Low &  497 &  6.8 \\
         \bottomrule
       \end{tabular}
     \end{minipage}
@@ -287,7 +285,7 @@ Four clusters of high neuron content were identified, three of which contain app
 
 The extracted clusters appear to be group according to the depth and the layer of the soma from which the neuron is located. 
 Figure \cref{fig:clusterdepths} in the Appendix shows the aggregated image constructed for each cluster across the entire imaged region. 
-The image of cluster A is well focused wheras the images for clusters B through D become less focused. 
+The image of neuron cluster A is well focused wheras the images for clusters B through D become less focused. 
 
 In addition to the two neuron clusters, two clusters for background structure were identified. The first corresponds to highly visible vesseles whereas the second contains low-intensity background material. These are shown in \cref{fig:clusterdepths} in the appendix.
 
@@ -346,7 +344,6 @@ A scatter plot of the matching matrix classes along with the corresponding confu
     \label{fig:confusion}
 \end{figure}
 
-
 An indication for the relative importance of a feature can be obtained by its weight in the first two principle components.
 The first component varies most in mean HC duration, mean HP pick intervals, mean HC fall time, mean HC rise time, and var HC pick intervals, in that order.
 The second component varies most in mean LC pick intervals, mean LC duration, mean LC fall time, mean LC rise time, and ratio of HC to LC duration. 
@@ -354,28 +351,40 @@ The first component thus variest most in features corresponding to high crossing
 The first two components thus have a strongest dependence on trace features.
 The third component contains image features, varying most in roundness, peak region stdev, peak region mean, peak, and subimage stdev.
 
-\subsection{Sparse Hierarchical Clustering}
-
-\todo{Wherein we use sparcl to perform sparse clustering}
-\todo{This section needs an image (probably a repeat of what we have above - a dendrogram and a cluster table)}.
-\todo{Finish it up with a discussion of what it is we discovered.}
-
 \subsection{Group Validation}
 
-\todo{Wherein we compare the clusters obtained in dataset A to those found in dataset B}
-\todo{Use the metric of in-group proportion to compute the centroid for groups in the training set, and then assign objects in set 2 to the closest centroid. The in-group proportion is the proportion of observations in the second group whose nearest neighbor is also in that group. I hope that there is an R package for this.}
-\todo{One can compute a p-value for this as well.}
-\todo{Should include an image of the second group's dendrogram}.
+The robustness of the discovered clusters in the training dataset was validated using the in-group proportion (IGP)~\cite{Kapp01012007}.
+The IGP is defined to be the proportion of observations assigned to a cluster whose naerest neighbor is also classified to the same cluster.
+Validation is conducted by computing the IGPs from the clusters obtained in the training dataset to the IGPs obtained from a null distribution over centroids. A group of data with a significant $p$-value is a high-quality cluster that was reproducible in the validation dataset.
+
+\begin{table}[h]
+    \centering
+
+    \scriptsize
+
+    \begin{tabular}{ccccccccc}
+    \toprule
+    Cluster & Neuron A & Neuron B & Neuron C & Neuron D & Structure High & Structure Low & Neuron & Structure \\
+    \midrule
+    $p$-value (\%) & \num{55.4} & \num{26.2} & \num{21.5} & \num{24.2} & \num{70.4} & \num{58.2} & \num{6.36} & \num{56.8} \\
+    \bottomrule
+    \end{tabular}
+    
+    \caption{\footnotesize Group validation via the in-group proportion. Sub-clusters were not found to have high significant. The two-class neuronal cluster possessed the lowest (best) $p$-value.}
+    \label{table:groupvalidation}
+\end{table}
+
+Validation was conducted on the set of six sub-clusters and the set of binary clusters obtained by merging the sub-clusters. The results are given in \cref{table:groupvalidation}. The sub-clusters showed low significant, most likely due to their continual nature resulting in no clear boundaries.
+The binary neuronal cluster, possessing a $p$-value of \num{6.36} percent, had the greatest significance.
 
 \section{Conclusions and Future Work}
 
-\todo{Recap what was done}
-\todo{Did we successfully identify clusters?}
-\todo{Did we discover any sub-clusters within the neuron group or structure group?}
-\todo{Did we successfully identify important features?}
-\todo{How did group validation go?}
+This project applied clustering methods to candidate objects in a one-photon {\calcium} dataset for the classification of neurons from background structures.
+Hierarchical clustering identified four neuronal clusters and two background structure classes, with the neuronal clusters appear to correspond to the depth in the soma.
+Group validation showed that while the six sub-clusters are not well supported across datasets due to their inherently continuous nature, the aggregate neuron cluster has a $p$-value significance of \num{6.36} percent.
+Principle component analysis was performed to identify preliminary important features and identify a reduced featureset which captures the majority of the variation in the data. Capturing \num{90} \% of the variation in the data requires over half of the extracted features. The most important features were associated with the candidate object's trace.
 
-\todo{Some ideas for future work.}
+Future work should investigate \todo{can you think of anything?}
 
 \printbibliography
 
@@ -491,23 +500,23 @@ The third component contains image features, varying most in roundness, peak reg
     \begin{minipage}{0.49\textwidth}
       \centering
       \includegraphics[width=\textwidth]{figs/composite_A.png}
-      \caption*{A}
+      \caption*{Neuron A}
     \end{minipage}
     \begin{minipage}{0.49\textwidth}
       \centering
       \includegraphics[width=\textwidth]{figs/composite_B.png}
-      \caption*{B}
+      \caption*{Neuron B}
     \end{minipage}
 
     \begin{minipage}{0.49\textwidth}
       \centering
       \includegraphics[width=\textwidth]{figs/composite_C.png}
-      \caption*{C}
+      \caption*{Neuron C}
     \end{minipage}
     \begin{minipage}{0.49\textwidth}
       \centering
       \includegraphics[width=\textwidth]{figs/composite_D.png}
-      \caption*{D}
+      \caption*{Neuron D}
     \end{minipage}
     \caption{\footnotesize Aggregate images for each neuronal cluster. Clusters appear to correspond to the depth of the soma in which neurons are located. Cluster A is most in focus, cluster D is most out of focus.}
     \label{fig:clusterdepths}
