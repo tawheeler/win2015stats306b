@@ -75,6 +75,9 @@ function get_cluster_percent_neurons(df::DataFrame, id::Int)
 end
 function get_cluster_centroids(df::DataFrame, X::Matrix{Float64})
 
+    # returns a matrix where the columns are the centroids
+    # each row corresponds to a particular feature
+
     assignment = array(df[:cluster_assignment_full])
     ids = get_cluster_ids(df)
 
@@ -147,24 +150,47 @@ function print_cluster_stats_table(df::DataFrame)
     end
 end
 
-function calc_in_group_validation(df::DataFrame, X::Matrix{Float64}, df2::DataFrame, X2::Matrix{Float64})
-    # assign objects in set 2 to the closest centroids identified for set 1
-    # in the "in-group-proportion" is the proportion of observations in the second group whose
-    # nearest neighbor is also in that group
+function calc_nearest_neighbors(X::Matrix{Float64})
+    m = size(X, 2)
+    nearest_neighbors = Array(Int, m)
+    for i = 1 : m
 
-    m2 = size(df2, 1)
+        value = X[:, i]
 
-    centroids = get_cluster_centroids(df, X)
+        min_dist = Inf
+        nearest_neighbors[i] = -1
+        for j = 1 : m
+            if j != i
+                target = X[:,j]
+                dist = norm(value - target)
+                if dist < min_dist
+                    min_dist = dist
+                    nearest_neighbors[i] = j
+                end
+            end
+        end
+    end
+
+    nearest_neighbors
+end
+function calc_assignment_to_closest_centroid(centroids::Matrix{Float64}, X::Matrix{Float64})
+    p, m = size(X)
     n_clust = size(centroids, 2)
-    assignment_2_to_closest_centroid = Array(Int, m2)
-    for i = 1 : m2
+    assignment_2_to_closest_centroid = Array(Int, m)
+    for i = 1 : m
 
-        value = X2[:, i]
+        value = X[:, i]
 
         min_dist = Inf
         for j = 1 : n_clust
             target = centroids[:,j]
-            dist = norm(value - target)
+
+            dist = 0.0
+            for k = 1 : p
+                Δ = value[k] - target[k]
+                dist += Δ*Δ
+            end
+
             if dist < min_dist
                 min_dist = dist
                 assignment_2_to_closest_centroid[i] = j
@@ -172,42 +198,60 @@ function calc_in_group_validation(df::DataFrame, X::Matrix{Float64}, df2::DataFr
         end
     end
 
-    in_group_proportion = 0
-    for i = 1 : m2
+    assignment_2_to_closest_centroid
+end
+function calc_counts(vec::Vector{Int})
 
-        value = X2[:, i]
+    counts = Dict{Int, Int}()
+    for c in vec
+        counts[c] = get(counts, c, 0) + 1
+    end
+    counts
+end
+function calc_in_group_proportions(
+    centroids::Matrix{Float64}, # p×c
+    X::Matrix{Float64},        # p×m
+    nearest_neighbors :: Vector{Int}
+    )
+    # assign objects in set 2 to the closest centroids identified for set 1
+    # in the "in-group-proportion" is the proportion of observations in the second group whose
+    # nearest neighbor is also in that group
 
-        min_dist = Inf
-        closest_ind = -1
-        for j = 1 : m2
-            if j != i
-                target = X2[:,j]
-                dist = norm(value - target)
-                if dist < min_dist
-                    min_dist = dist
-                    closest_ind = j
-                end
-            end
-        end
+    
+    assignment_2_to_closest_centroid = calc_assignment_to_closest_centroid(centroids, X)
+
+    m = size(X, 2)
+    c = size(centroids, 2)
+
+    in_group_proportions = zeros(Int, c)
+    counts = zeros(Int, c)
+    for i = 1 : m
+        neighbor = nearest_neighbors[i]
 
         # is it also in the same group?
-        if assignment_2_to_closest_centroid[i] == assignment_2_to_closest_centroid[closest_ind]
-            in_group_proportion += 1
+        cind = assignment_2_to_closest_centroid[i]
+        counts[cind] += 1
+        if cind == assignment_2_to_closest_centroid[neighbor]
+            in_group_proportions[cind] += 1
         end
     end
 
-    in_group_proportion /= m2
+    in_group_proportions ./ counts
 
     # 0.9882692307692308
 end
-function calc_in_group_validation_binary(df::DataFrame, X::Matrix{Float64}, df2::DataFrame, X2::Matrix{Float64})
+function calc_in_group_proportions_binary(
+    centroids         :: Matrix{Float64},
+    X2                :: Matrix{Float64},
+    nearest_neighbors :: Vector{Int}
+    )
+
     # assign objects in set 2 to the closest centroids identified for set 1
     # in the "in-group-proportion" is the proportion of observations in the second group whose
     # nearest neighbor is also in that group
 
     m2 = size(df2, 1)
 
-    centroids = get_cluster_centroids_binary(df, X)
     n_clust = size(centroids, 2)
     assignment_2_to_closest_centroid = Array(Int, m2)
     for i = 1 : m2
@@ -228,23 +272,10 @@ function calc_in_group_validation_binary(df::DataFrame, X::Matrix{Float64}, df2:
     in_group_proportion = 0
     for i = 1 : m2
 
-        value = X2[:, i]
-
-        min_dist = Inf
-        closest_ind = -1
-        for j = 1 : m2
-            if j != i
-                target = X2[:,j]
-                dist = norm(value - target)
-                if dist < min_dist
-                    min_dist = dist
-                    closest_ind = j
-                end
-            end
-        end
+        neighbor = nearest_neighbors[i]
 
         # is it also in the same group?
-        if assignment_2_to_closest_centroid[i] == assignment_2_to_closest_centroid[closest_ind]
+        if assignment_2_to_closest_centroid[i] == assignment_2_to_closest_centroid[neighbor]
             in_group_proportion += 1
         end
     end
@@ -252,6 +283,52 @@ function calc_in_group_validation_binary(df::DataFrame, X::Matrix{Float64}, df2:
     in_group_proportion /= m2
 
     # 0.9978846153846154
+end
+
+function calc_in_group_proportions_pvalue(
+    C   :: Matrix{Float64}, # p×c
+    X   :: Matrix{Float64}, # p×m
+    nearest_neighbors :: Vector{Int};
+    nsamples :: Int = 1000
+    )
+
+    #=
+    Compute the significance of the in-group-proportion by:
+     - randomly selecting centroids in the feature space
+     - compute the in-group-proportions using random centroids
+     - p-value is the percentage of times that the in-group proportion
+       from random centroids exceeds the observed in-group proportion
+
+    C is the matrix of centroids with features in the rows
+    Cₚ is C projected to the principle component orientation
+    Permute within each row of Cₚ to get new centroids
+    =#
+
+    U,Σ,V = svd(C)
+    Cp = C*V
+    # Cp = deepcopy(C)
+    p,c = size(C)
+
+    in_group_proportions = calc_in_group_proportions(C, X, nearest_neighbors)
+
+    counts_exceeded = zeros(Int, c)
+    for i = 1 : nsamples
+
+        # permute the columns
+        for j = 1 : p
+            Cp[j,:] = Cp[j,randperm(c)]
+        end
+
+        new_in_group_proportions = calc_in_group_proportions(Cp*V', X, nearest_neighbors)
+        # new_in_group_proportions = calc_in_group_proportions(Cp, X, nearest_neighbors)
+        for k = 1 : c
+            if new_in_group_proportions[k] > in_group_proportions[k]
+                counts_exceeded[k] += 1
+            end
+        end
+    end
+
+    counts_exceeded ./ (nsamples / 100)
 end
 
 function create_PCA_scatterplot(df::DataFrame, X::Matrix{Float64})
@@ -341,6 +418,22 @@ function create_PCA_scatterplot(df::DataFrame, X::Matrix{Float64})
     end
 end
 
+function export_centroids(centroids6::Matrix{Float64}, centroids2::Matrix{Float64})
+    df = DataFrame()
+    df[:cellA] = centroids6[:, 1]
+    df[:cellB] = centroids6[:, 2]
+    df[:cellC] = centroids6[:, 3]
+    df[:cellD] = centroids6[:, 4]
+    df[:background1]  = centroids6[:, 5]
+    df[:background2] = centroids6[:, 6]
+    writetable("centroids6.csv", df)
+
+    df = DataFrame()
+    df[:cell] = centroids2[:, 1]
+    df[:structure] = centroids2[:, 2]
+    writetable("centroids2.csv", df)
+end
+
 df = readtable("all_data_imputed.csv")
 X = get_data_matrix(df)
 Y = whiten(X)
@@ -349,8 +442,16 @@ df2 = readtable("all_data_imputed2.csv")
 X2 = get_data_matrix(df2)
 Y2 = whiten(X2)
 
-# println(calc_in_group_validation(df, X, df2, X2))
-println(calc_in_group_validation_binary(df, X, df2, X2))
+centroids6 = get_cluster_centroids(df, X)
+centroids2 = get_cluster_centroids_binary(df, X)
+# export_centroids(centroids6, centroids2)
+
+nearest_neighbors = calc_nearest_neighbors(X2)
+# println(calc_in_group_proportions(centroids6, X2, nearest_neighbors))
+# println(calc_in_group_proportions_binary(centroids2, X2, nearest_neighbors))
+# println(calc_in_group_proportions_pvalue(centroids6, X2, nearest_neighbors))
+println(calc_in_group_proportions_pvalue(centroids6, X2, nearest_neighbors))
 
 # PyPlot.close("all")
 # create_PCA_scatterplot(df, Y)
+
