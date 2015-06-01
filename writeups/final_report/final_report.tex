@@ -287,7 +287,37 @@ The extracted clusters appear to be group according to the depth and the layer o
 Figure \cref{fig:clusterdepths} in the Appendix shows the aggregated image constructed for each cluster across the entire imaged region. 
 The image of neuron cluster A is well focused wheras the images for clusters B through D become less focused. 
 
-In addition to the two neuron clusters, two clusters for background structure were identified. The first corresponds to highly visible vesseles whereas the second contains low-intensity background material. These are shown in \cref{fig:clusterdepths} in the appendix.
+In addition to the four neuron clusters, two clusters for background structure were identified. The first corresponds to highly visible vesseles whereas the second contains low-intensity background material. These are shown in \cref{fig:clusterdepths} in the appendix.
+
+\subsection{Centroid Comparison}
+
+Of particular interest is the composition of features which indicates whether a candidate object is a neuron. 
+\todo{Did the `cell' and `non-cell' clusters in Book1.xlsx came from merging clusters A,B,C,D and the two non-cell clusters, or did it come from the group truth data? I assume the second below.}
+Two aggregate classes for neuron and background structure (non-neuron) were created using the hand-labelled truth data and the corresponding cluster centroids were computed.
+A comparison of the centroid vectors are given in \cref{fig:binaryclustercompare} and show that the centroids are fairly well mirrored about the origin.
+
+The features with greatest deviation are the overall ratio of high crossing durations and the number of high crossing events. These features correspond directly to the degree in which the candidate object acts as a neuron; a neuron will `fire' repeatedly, causing high crossing events, whereas background structure will typically possess a low, noisy signature. The other primarly distinguishing features are also derived from high crossing in the trace. These include the ratio of high crossing duration to low crossing duration, the ratio of high crossing events to low crossing events, etc. Of secondary importance are features derived from the magnitude of the crossings, inculding the peak return, the pick values, and when considered in aggregate, the peak region and subregion features. 
+
+It is important to note that while these findings are promising, they are based on a hand-labeling of the dataset. This hand-labeling was conducted based primarily on the trace profile and the presence of high crossing events.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{figs/centroid_binary_barplot.png}
+    \caption{\footnotesize Cluster centroid comparison for aggregate neuron and structure clusters. Clustering was conducted on zero-mean, unit-standard deviation data.}
+    \label{fig:binaryclustercompare}
+\end{figure}
+
+A comparison of the centroid vectors for the neuronal sub-clusters identified using hierarchical clustering is given in \cref{fig:neuronclustercompare}.
+Cluster A, which was most in-focus and likely represents neurons at the top of the soma, contains candidate objects with significantly lower perimeter and area. This cluster is well separated from the other three neuronal clusters, possessing significantly more extreme, and in some cases opposite, centroid coordinates. This suggests that cluster A contains the neurons with the clearest neuron profiles, which makes sense considering neurons at the top of the soma will produce the clearest signal.
+
+The remaining three clusters are more similar, but possess a few values which distingish them from each other. Neuron cluster B possesses the most extreme ratio of high crossing events to low crossing events and the greatest subregion mean. Neuron cluster C possesses an extremely low value for high point, has the highest number of low crossing events, and contains neurons with negative skew. Neuron cluster D is least remarkable, and tends to contain values opposing the extremety of cluster A.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{figs/centroid_neuron_barplot.png}
+    \caption{\footnotesize Cluster centroid comparison for neuron sub-clusters. Clustering was conducted on zero-mean, unit-standard deviation data.}
+    \label{fig:neuronclustercompare}
+\end{figure}
 
 
 \subsection{Principle Component Analysis}
