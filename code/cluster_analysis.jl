@@ -149,7 +149,34 @@ function print_cluster_stats_table(df::DataFrame)
         @printf("%20s %10d %20f\n", cluster_id_to_name(id), cluster_size, percent_neurons)
     end
 end
+function get_cluster_counts(assignment::AbstractVector{Int})
+    counts = Dict{Int, Int}()
+    for a in assignment
+        counts[a] = get(counts, a, 0) + 1
+    end
+    counts
+end
 
+function calc_pearson_centered_correlation(xarr::Vector{Float64}, yarr::Vector{Float64})
+    # assumes x and y are zero-mean
+    num = 0.0
+    denom1 = 0.0
+    denom2 = 0.0
+
+    mean_x = mean(xarr)
+    mean_y = mean(yarr)
+
+    n = length(xarr)
+    for i = 1 : n
+        x = xarr[i]
+        y = yarr[i]
+        num += (x-mean_x) * (y-mean_y)
+        denom1 += (x-mean_x)*(x-mean_x)
+        denom2 += (y-mean_y)*(y-mean_y)
+    end
+    num / (sqrt(denom1)*sqrt(denom2))
+end
+calc_abs_pearson_centered_correlation(x::Vector{Float64}, y::Vector{Float64}) = abs(calc_pearson_centered_correlation(x,y))
 function calc_nearest_neighbors(X::Matrix{Float64})
     m = size(X, 2)
     nearest_neighbors = Array(Int, m)
@@ -172,6 +199,34 @@ function calc_nearest_neighbors(X::Matrix{Float64})
     end
 
     nearest_neighbors
+end
+function calc_assignment_to_closest_centroid_pearson(centroids::Matrix{Float64}, X::Matrix{Float64}, cutoff::Float64 = 0.1)
+    p, m = size(X)
+    n_clust = size(centroids, 2)
+    assignment_2_to_closest_centroid = Array(Int, m)
+    null_class = n_clust + 1
+    for i = 1 : m
+
+        value = X[:, i]
+
+        max_correlation = -Inf
+        for j = 1 : n_clust
+            target = centroids[:,j]
+
+            corr = calc_abs_pearson_centered_correlation(value, target)
+
+            if corr > max_correlation
+                max_correlation = corr
+                assignment_2_to_closest_centroid[i] = j
+            end
+        end
+
+        if max_correlation < cutoff
+            assignment_2_to_closest_centroid[i] = null_class
+        end
+    end
+
+    assignment_2_to_closest_centroid
 end
 function calc_assignment_to_closest_centroid(centroids::Matrix{Float64}, X::Matrix{Float64})
     p, m = size(X)
@@ -200,31 +255,61 @@ function calc_assignment_to_closest_centroid(centroids::Matrix{Float64}, X::Matr
 
     assignment_2_to_closest_centroid
 end
-function calc_counts(vec::Vector{Int})
+function calc_counts(vec::Vector{Int}, max_val::Int)
 
     counts = Dict{Int, Int}()
+    for i = 1 : max_val
+        counts[i] = 0
+    end
     for c in vec
-        counts[c] = get(counts, c, 0) + 1
+        counts[c] = counts[c] + 1
     end
     counts
+end
+function calc_in_group_proportion(
+    centroids::Matrix{Float64}, # p×c
+    X::Matrix{Float64},        # p×m
+    nearest_neighbors :: Vector{Int},
+    assignment_2_to_closest_centroid :: Vector{Int},
+    clusterid :: Int
+    )
+
+    m = size(X, 2)
+    c = size(centroids, 2)
+
+    in_group_proportion = 0
+    count = 0
+    for i = 1 : m
+
+        cind = assignment_2_to_closest_centroid[i]
+        if cind == clusterid
+            count += 1
+
+            # is it also in the same group?
+            neighbor = nearest_neighbors[i]
+            if cind == assignment_2_to_closest_centroid[neighbor]
+                in_group_proportion += 1
+            end
+        end
+    end
+
+    in_group_proportion / count
 end
 function calc_in_group_proportions(
     centroids::Matrix{Float64}, # p×c
     X::Matrix{Float64},        # p×m
-    nearest_neighbors :: Vector{Int}
+    nearest_neighbors :: Vector{Int},
+    assignment_2_to_closest_centroid :: Vector{Int}
     )
     # assign objects in set 2 to the closest centroids identified for set 1
     # in the "in-group-proportion" is the proportion of observations in the second group whose
     # nearest neighbor is also in that group
 
-    
-    assignment_2_to_closest_centroid = calc_assignment_to_closest_centroid(centroids, X)
-
     m = size(X, 2)
     c = size(centroids, 2)
 
-    in_group_proportions = zeros(Int, c)
-    counts = zeros(Int, c)
+    in_group_proportions = zeros(Int, c+1)
+    counts = zeros(Int, c+1)
     for i = 1 : m
         neighbor = nearest_neighbors[i]
 
@@ -237,59 +322,14 @@ function calc_in_group_proportions(
     end
 
     in_group_proportions ./ counts
-
-    # 0.9882692307692308
-end
-function calc_in_group_proportions_binary(
-    centroids         :: Matrix{Float64},
-    X2                :: Matrix{Float64},
-    nearest_neighbors :: Vector{Int}
-    )
-
-    # assign objects in set 2 to the closest centroids identified for set 1
-    # in the "in-group-proportion" is the proportion of observations in the second group whose
-    # nearest neighbor is also in that group
-
-    m2 = size(df2, 1)
-
-    n_clust = size(centroids, 2)
-    assignment_2_to_closest_centroid = Array(Int, m2)
-    for i = 1 : m2
-
-        value = X2[:, i]
-
-        min_dist = Inf
-        for j = 1 : n_clust
-            target = centroids[:,j]
-            dist = norm(value - target)
-            if dist < min_dist
-                min_dist = dist
-                assignment_2_to_closest_centroid[i] = j
-            end
-        end
-    end
-
-    in_group_proportion = 0
-    for i = 1 : m2
-
-        neighbor = nearest_neighbors[i]
-
-        # is it also in the same group?
-        if assignment_2_to_closest_centroid[i] == assignment_2_to_closest_centroid[neighbor]
-            in_group_proportion += 1
-        end
-    end
-
-    in_group_proportion /= m2
-
-    # 0.9978846153846154
 end
 
 function calc_in_group_proportions_pvalue(
     C   :: Matrix{Float64}, # p×c
     X   :: Matrix{Float64}, # p×m
     nearest_neighbors :: Vector{Int};
-    nsamples :: Int = 1000
+    nsamples :: Int = 10,
+    COUNT_THRESHOLD = 5
     )
 
     #=
@@ -298,6 +338,8 @@ function calc_in_group_proportions_pvalue(
      - compute the in-group-proportions using random centroids
      - p-value is the percentage of times that the in-group proportion
        from random centroids exceeds the observed in-group proportion
+     - note that only groups of the same size (within a threshold) of 
+       the "correct" clusters are accepted
 
     C is the matrix of centroids with features in the rows
     Cₚ is C projected to the principle component orientation
@@ -306,12 +348,16 @@ function calc_in_group_proportions_pvalue(
 
     U,Σ,V = svd(C)
     Cp = C*V
-    # Cp = deepcopy(C)
     p,c = size(C)
 
-    in_group_proportions = calc_in_group_proportions(C, X, nearest_neighbors)
+    assignment_2_to_closest_centroid = calc_assignment_to_closest_centroid_pearson(C, X, 0.0)
+    true_group_counts = calc_counts(assignment_2_to_closest_centroid, c+1)
+    in_group_proportions = calc_in_group_proportions(C, X, nearest_neighbors, assignment_2_to_closest_centroid)
 
-    counts_exceeded = zeros(Int, c)
+    println(true_group_counts)
+
+    counts_exceeded = zeros(Int, c+1)
+    counts_attempted = zeros(Int, c+1)
     for i = 1 : nsamples
 
         # permute the columns
@@ -319,16 +365,30 @@ function calc_in_group_proportions_pvalue(
             Cp[j,:] = Cp[j,randperm(c)]
         end
 
-        new_in_group_proportions = calc_in_group_proportions(Cp*V', X, nearest_neighbors)
-        # new_in_group_proportions = calc_in_group_proportions(Cp, X, nearest_neighbors)
-        for k = 1 : c
-            if new_in_group_proportions[k] > in_group_proportions[k]
-                counts_exceeded[k] += 1
+        C_new = Cp*V'
+        assignment_to_closest_centroid = calc_assignment_to_closest_centroid_pearson(C_new, X)
+        group_counts = calc_counts(assignment_to_closest_centroid, c+1)
+
+        println(group_counts)
+
+
+        for (clusterid, counts) in group_counts
+            if abs(counts - true_group_counts[clusterid]) < COUNT_THRESHOLD || clusterid == c+1
+
+                new_in_group_proportion = calc_in_group_proportion(C_new, X, nearest_neighbors, assignment_2_to_closest_centroid, clusterid)
+
+                counts_attempted[clusterid] += 1
+                if new_in_group_proportion > in_group_proportions[clusterid]
+                    counts_exceeded[clusterid] += 1
+                end
             end
         end
     end
 
-    counts_exceeded ./ (nsamples / 100)
+    println("counts_exceeded:  " , counts_exceeded)
+    println("counts_attempted: " , counts_attempted)
+
+    counts_exceeded ./ (counts_attempted ./ 100)
 end
 
 function create_PCA_scatterplot(df::DataFrame, X::Matrix{Float64})
@@ -434,23 +494,31 @@ function export_centroids(centroids6::Matrix{Float64}, centroids2::Matrix{Float6
     writetable("centroids2.csv", df)
 end
 
-df = readtable("all_data_imputed.csv")
-X = get_data_matrix(df)
-Y = whiten(X)
+# df = readtable("all_data_imputed.csv")
+# X = get_data_matrix(df)
+# Y = whiten(X)
 
-df2 = readtable("all_data_imputed2.csv")
-X2 = get_data_matrix(df2)
-Y2 = whiten(X2)
+# df2 = readtable("all_data_imputed2.csv")
+# X2 = get_data_matrix(df2)
+# Y2 = whiten(X2)
 
-centroids6 = get_cluster_centroids(df, X)
-centroids2 = get_cluster_centroids_binary(df, X)
+# centroids6 = get_cluster_centroids(df, Y)
+# centroids2 = get_cluster_centroids_binary(df, Y)
+
 # export_centroids(centroids6, centroids2)
 
-nearest_neighbors = calc_nearest_neighbors(X2)
+# nearest_neighbors = calc_nearest_neighbors(Y2)
+
+# ass6 = calc_assignment_to_closest_centroid(centroids6, X2)
+# ass2 = calc_assignment_to_closest_centroid(centroids2, X2)
+
+# dfclusterass = DataFrame(binary_cluster_assignment = ass2, subcluster_assignment=ass6)
+# writetable("cluster_assignment_witheld.csv", dfclusterass)
+
 # println(calc_in_group_proportions(centroids6, X2, nearest_neighbors))
 # println(calc_in_group_proportions_binary(centroids2, X2, nearest_neighbors))
-# println(calc_in_group_proportions_pvalue(centroids6, X2, nearest_neighbors))
 println(calc_in_group_proportions_pvalue(centroids6, X2, nearest_neighbors))
+# println(calc_in_group_proportions_pvalue(centroids2, Y2, nearest_neighbors))
 
 # PyPlot.close("all")
 # create_PCA_scatterplot(df, Y)
